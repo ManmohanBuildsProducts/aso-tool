@@ -44,10 +44,6 @@ os.makedirs(static_dir, exist_ok=True)
 # Mount static files
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
-@app.get("/")
-async def read_root():
-    return FileResponse(os.path.join(static_dir, "index.html"))
-
 # Include routers
 app.include_router(app_analysis.router, prefix="/api", tags=["App Analysis"])
 app.include_router(competitor_analysis.router, prefix="/api", tags=["Competitor Analysis"])
@@ -65,7 +61,7 @@ async def health_check():
 @app.get("/")
 async def serve_spa():
     """Serve the Single Page Application"""
-    return FileResponse("../frontend/dist/index.html")
+    return FileResponse(os.path.join(static_dir, "index.html"))
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):

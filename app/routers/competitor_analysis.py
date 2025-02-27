@@ -16,35 +16,43 @@ async def compare_apps(request: CompetitorAnalysisRequest) -> Dict[str, Any]:
     """
     Compare an app with its competitors
     """
-    # Validate app_id
-    if not request.app_id:
-        raise HTTPException(status_code=400, detail="App ID is required")
-    
-    # Validate competitor_ids
-    if not request.competitor_ids:
-        raise HTTPException(status_code=400, detail="At least one competitor ID is required")
-    
-    # Check for duplicate IDs
-    if request.app_id in request.competitor_ids:
-        raise HTTPException(status_code=400, detail="Main app ID cannot be in competitor IDs")
-    
-    if len(request.competitor_ids) != len(set(request.competitor_ids)):
-        raise HTTPException(status_code=400, detail="Duplicate competitor IDs are not allowed")
-    
     try:
+        # Validate input
+        if not request.app_id:
+            raise HTTPException(status_code=400, detail="App ID is required")
+        if not request.competitor_ids:
+            raise HTTPException(status_code=400, detail="At least one competitor ID is required")
+        
         analyzer = CompetitorAnalyzer()
         comparison = await analyzer.analyze_competitors(request.app_id, request.competitor_ids)
         
-        # Check if any data was retrieved
-        if not comparison or not comparison.get("main_app"):
-            raise HTTPException(status_code=400, detail="Failed to retrieve app data")
+        # Clean up None values in the response
+        def clean_value(value):
+            if value is None:
+                return "N/A"
+            return value
+        
+        # Clean up the comparison data
+        if comparison.get("main_app"):
+            for key in ["score", "ratings", "reviews"]:
+                if key in comparison["main_app"]["details"]:
+                    comparison["main_app"]["details"][key] = clean_value(comparison["main_app"]["details"][key])
+        
+        if comparison.get("competitors"):
+            for comp in comparison["competitors"]:
+                for key in ["score", "ratings", "reviews"]:
+                    if key in comp["details"]:
+                        comp["details"][key] = clean_value(comp["details"][key])
         
         return {
             "status": "success",
             "comparison": comparison
         }
+    except HTTPException as he:
+        raise he
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        logger.error(f"Error analyzing competitors: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Error analyzing competitors: {str(e)}")
 
 @router.get("/history/{app_id}")
 async def get_app_history(app_id: str) -> Dict[str, Any]:

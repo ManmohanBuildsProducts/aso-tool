@@ -85,27 +85,113 @@ class DeepseekAnalyzer:
             logger.error(f"Error parsing markdown: {e}")
             return {"error": "Failed to parse response"}
 
-    async def analyze_app_metadata(self, app_metadata: Dict, competitor_metadata: List[Dict]) -> Dict:
-        """Analyze app metadata and provide ASO recommendations"""
+    async def analyze_competitor_metadata(self, app_metadata: Dict, competitor_metadata: List[Dict]) -> Dict:
+        """Analyze competitor metadata and provide insights"""
         try:
-            prompt = f"""As an ASO expert for B2B and wholesale apps, analyze this app metadata and provide detailed recommendations:
+            prompt = f"""As an ASO expert for B2B and wholesale apps, analyze this competitive landscape and provide insights in this exact JSON format:
+{{
+    "competitive_analysis": {{
+        "strengths": [
+            "strength 1",
+            "strength 2"
+        ],
+        "weaknesses": [
+            "weakness 1",
+            "weakness 2"
+        ],
+        "opportunities": [
+            "opportunity 1",
+            "opportunity 2"
+        ],
+        "threats": [
+            "threat 1",
+            "threat 2"
+        ]
+    }},
+    "keyword_gaps": [
+        {{
+            "keyword": "missing keyword",
+            "importance": "high",
+            "competitor_usage": "common"
+        }}
+    ],
+    "feature_gaps": [
+        {{
+            "feature": "missing feature",
+            "priority": "high",
+            "competitors": ["competitor1", "competitor2"]
+        }}
+    ],
+    "recommendations": [
+        "recommendation 1",
+        "recommendation 2"
+    ]
+}}
 
-App Metadata:
+Your App Metadata:
 {json.dumps(app_metadata, indent=2)}
 
 Competitor Metadata:
 {json.dumps(competitor_metadata, indent=2)}
 
-Provide a detailed analysis with these sections:
-1. Title Optimization
-2. Description Analysis
-3. Keyword Opportunities
-4. Competitive Advantages
-5. Feature Recommendations
-6. Category-specific Suggestions
-7. Priority Actions
+Focus on B2B wholesale domain best practices. Ensure the response is valid JSON."""
 
-Focus on B2B wholesale domain best practices. Format your response in clear sections with ### headers."""
+            messages = [
+                {"role": "system", "content": "You are an expert ASO competitive analyst for B2B applications."},
+                {"role": "user", "content": prompt}
+            ]
+
+            return await self._make_request(messages)
+            
+        except Exception as e:
+            logger.error(f"Error analyzing competitor metadata: {e}")
+            return {"error": str(e)}
+
+    async def analyze_app_metadata(self, app_metadata: Dict, competitor_metadata: List[Dict]) -> Dict:
+        """Analyze app metadata and provide ASO recommendations"""
+        try:
+            prompt = f"""As an ASO expert for B2B and wholesale apps, analyze this app metadata and provide recommendations in this exact JSON format:
+{{
+    "title_analysis": {{
+        "current_score": 85,
+        "suggestions": [
+            "suggestion 1",
+            "suggestion 2"
+        ],
+        "keywords_missing": [
+            "keyword 1",
+            "keyword 2"
+        ]
+    }},
+    "description_analysis": {{
+        "current_score": 75,
+        "structure_issues": [
+            "issue 1",
+            "issue 2"
+        ],
+        "content_gaps": [
+            "gap 1",
+            "gap 2"
+        ]
+    }},
+    "keyword_opportunities": [
+        {{
+            "keyword": "opportunity keyword",
+            "relevance": 0.9,
+            "competition": "medium",
+            "priority": "high"
+        }}
+    ],
+    "recommendations": [
+        "recommendation 1",
+        "recommendation 2"
+    ]
+}}
+
+App Metadata:
+{json.dumps(app_metadata, indent=2)}
+
+Focus on B2B wholesale domain best practices. Ensure the response is valid JSON."""
 
             messages = [
                 {"role": "system", "content": "You are an expert ASO analyst specializing in B2B and wholesale applications."},

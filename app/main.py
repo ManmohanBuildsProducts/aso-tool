@@ -15,6 +15,14 @@ app = FastAPI(
     version="1.0.0"
 )
 
+@app.get("/api/version")
+async def get_version():
+    return {
+        "version": "1.0.1",
+        "commit": "238981d8",
+        "status": "running"
+    }
+
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,

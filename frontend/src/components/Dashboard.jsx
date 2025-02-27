@@ -9,32 +9,25 @@ import LoadingState from './LoadingState';
 import ErrorBoundary from './ErrorBoundary';
 
 const Dashboard = ({ appId }) => {
-  const { data, isLoading, error } = useQuery(
-    ['appAnalysis', appId],
-    () => fetchAppAnalysis(appId),
-    {
-      select: (data) => {
-        // Transform markdown sections into structured data
-        const sections = {};
-        if (data?.analysis) {
-          Object.entries(data.analysis).forEach(([key, value]) => {
-            const sectionName = key.replace(/^\d+\.\s+/, '').toLowerCase();
-            sections[sectionName] = value.split('---')[0].trim();
-          });
-        }
-        return {
-          sections,
-          format: data?.format
-        };
-      },
-      retry: 2,
-      staleTime: 5 * 60 * 1000  // 5 minutes
+  // Transform API response
+  const transformResponse = React.useCallback((data) => {
+    const sections = {};
+    if (data?.analysis) {
+      Object.entries(data.analysis).forEach(([key, value]) => {
+        const sectionName = key.replace(/^\d+\.\s+/, '').toLowerCase();
+        sections[sectionName] = value.split('---')[0].trim();
+      });
     }
-  );
+    return {
+      sections,
+      format: data?.format
+    };
+  }, []);
 
   // Transform sections into actions
-  const actions = React.useMemo(() => {
-    const sections = data?.sections || {};
+  const transformActions = React.useCallback((sections) => {
+    if (!sections) return [];
+    
     return Object.entries(sections)
       .filter(([key]) => key.includes('recommendations') || key.includes('actions'))
       .flatMap(([_, value]) => {
@@ -55,18 +48,31 @@ const Dashboard = ({ appId }) => {
                 : 'medium'
           }));
       });
-  }, [data?.sections]);
+  }, []);
 
   // Transform sections into keywords
-  const keywords = React.useMemo(() => {
-    const keywordSection = data?.sections?.['keyword opportunities'] || '';
+  const transformKeywords = React.useCallback((sections) => {
+    const keywordSection = sections?.['keyword opportunities'] || '';
     return keywordSection.split('\n')
       .filter(line => line.trim().startsWith('-') || line.trim().startsWith('•'))
       .map(line => ({
         keyword: line.replace(/^[-•]\s*/, '').trim(),
         relevance: Math.random() * 100  // TODO: Implement proper relevance calculation
       }));
-  }, [data?.sections]);
+  }, []);
+
+  const { data, isLoading, error } = useQuery(
+    ['appAnalysis', appId],
+    () => fetchAppAnalysis(appId),
+    {
+      select: transformResponse,
+      retry: 2,
+      staleTime: 5 * 60 * 1000  // 5 minutes
+    }
+  );
+
+  const actions = React.useMemo(() => transformActions(data?.sections), [data?.sections, transformActions]);
+  const keywords = React.useMemo(() => transformKeywords(data?.sections), [data?.sections, transformKeywords]);
 
   if (isLoading) return <LoadingState message="Analyzing app data..." />;
   if (error) {

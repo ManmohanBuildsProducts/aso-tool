@@ -4,6 +4,7 @@ from typing import Dict, Any, Optional
 from datetime import datetime
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -69,48 +70,36 @@ class AppScraper:
     def _clean_app_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Clean and validate app data with improved error handling"""
         try:
-            # Extract and validate critical fields
-            title = str(data.get('title', '')).strip()
-            score = float(data.get('score')) if data.get('score') is not None else 0.0
-            reviews = int(data.get('reviews', 0))
-            installs = str(data.get('installs', '0+')).strip()
-            min_installs = int(data.get('minInstalls', 0))
-            
-            # Enhanced data structure with marketing-focused metrics
+            # Extract and validate critical fields with default values
             cleaned = {
                 # Basic Info
-                "title": title,
-                "summary": str(data.get('summary', '')).strip(),
-                "description": str(data.get('description', '')).strip(),
-                "descriptionHTML": str(data.get('descriptionHTML', '')).strip(),
+                "title": str(data.get('title', '')).strip() or 'Unknown',
+                "summary": str(data.get('summary', '')).strip() or '',
+                "description": str(data.get('description', '')).strip() or '',
+                "descriptionHTML": str(data.get('descriptionHTML', '')).strip() or '',
                 "appId": str(data.get('appId', '')).strip(),
                 "url": str(data.get('url', '')).strip(),
                 
                 # Performance Metrics
-                "score": score,
-                "ratings": int(data.get('ratings', 0)),
-                "reviews": reviews,
-                "installs": installs,
-                "minInstalls": min_installs,
-                "maxInstalls": int(data.get('maxInstalls', min_installs)),
-                
-                # Engagement Metrics
-                "reviewsPerInstall": (reviews / min_installs) if min_installs > 0 else 0,
-                "scoreToReviewsRatio": (score * reviews) if reviews > 0 else 0,
+                "score": float(data.get('score', 0) or 0),
+                "ratings": int(data.get('ratings', 0) or 0),
+                "reviews": int(data.get('reviews', 0) or 0),
+                "installs": str(data.get('installs', '0+')).strip(),
+                "minInstalls": int(data.get('minInstalls', 0) or 0),
+                "maxInstalls": int(data.get('maxInstalls', 0) or 0),
                 
                 # Business Info
-                "price": float(data.get('price', 0)),
+                "price": float(data.get('price', 0) or 0),
                 "free": bool(data.get('free', True)),
                 "currency": str(data.get('currency', 'USD')),
-                "inAppProducts": bool(data.get('offersIAP', False)),
+                "offersIAP": bool(data.get('offersIAP', False)),
                 
                 # Category Info
-                "genre": str(data.get('genre', '')).strip(),
+                "genre": str(data.get('genre', '')).strip() or 'Unknown',
                 "genreId": str(data.get('genreId', '')).strip(),
-                "categories": data.get('categories', []),
                 
                 # Developer Info
-                "developer": str(data.get('developer', '')).strip(),
+                "developer": str(data.get('developer', '')).strip() or 'Unknown',
                 "developerId": str(data.get('developerId', '')).strip(),
                 "developerEmail": str(data.get('developerEmail', '')).strip(),
                 "developerWebsite": str(data.get('developerWebsite', '')).strip(),
@@ -122,30 +111,32 @@ class AppScraper:
                 "video": str(data.get('video', '')).strip(),
                 
                 # Content Info
-                "contentRating": str(data.get('contentRating', '')).strip(),
+                "contentRating": str(data.get('contentRating', '')).strip() or 'Not Rated',
                 "contentRatingDescription": str(data.get('contentRatingDescription', '')).strip(),
                 "adSupported": bool(data.get('adSupported', False)),
                 "containsAds": bool(data.get('containsAds', False)),
                 
                 # Technical Info
                 "released": str(data.get('released', '')).strip(),
-                "updated": int(data.get('updated', 0)),
-                "version": str(data.get('version', '')).strip(),
+                "updated": int(data.get('updated', 0) or 0),
+                "version": str(data.get('version', '')).strip() or 'Unknown',
                 "recentChanges": str(data.get('recentChanges', '')).strip(),
-                "size": str(data.get('size', '')).strip(),
-                "androidVersion": str(data.get('androidVersion', '')).strip(),
-                "androidVersionText": str(data.get('androidVersionText', '')).strip(),
+                "size": str(data.get('size', '')).strip() or 'Unknown',
+                "androidVersion": str(data.get('androidVersion', '')).strip() or 'Unknown',
+                "androidVersionText": str(data.get('androidVersionText', '')).strip() or 'Unknown',
                 
                 # Review Distribution
                 "histogram": [int(x) for x in data.get('histogram', [0, 0, 0, 0, 0])],
                 
                 # Metadata
                 "scrapedAt": datetime.now().isoformat(),
-                "dataQuality": self._calculate_data_quality(data)
             }
-            
+
             # Add computed metrics
-            cleaned.update(self._calculate_additional_metrics(cleaned))
+            cleaned.update(self._calculate_metrics(cleaned))
+            
+            # Add data quality score
+            cleaned["dataQuality"] = self._calculate_data_quality(cleaned)
             
             return cleaned
             
@@ -166,58 +157,97 @@ class AppScraper:
                 "dataQuality": "minimal"
             }
 
-    def _calculate_data_quality(self, data: Dict[str, Any]) -> str:
-        """Calculate data quality score"""
-        required_fields = ['title', 'score', 'reviews', 'installs', 'description']
-        optional_fields = ['developerWebsite', 'video', 'recentChanges']
-        
-        required_count = sum(1 for field in required_fields if data.get(field))
-        optional_count = sum(1 for field in optional_fields if data.get(field))
-        
-        total_score = (required_count / len(required_fields)) * 0.7 + (optional_count / len(optional_fields)) * 0.3
-        
-        if total_score >= 0.8:
-            return "high"
-        elif total_score >= 0.5:
-            return "medium"
-        else:
-            return "low"
-
-    def _calculate_additional_metrics(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        """Calculate additional marketing-focused metrics"""
+    def _calculate_metrics(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Calculate additional metrics"""
         try:
             metrics = {}
             
-            # Review Quality Score (0-100)
+            # Calculate review quality (0-100)
             if data['reviews'] > 0 and data['score'] > 0:
                 review_quality = (data['score'] * 20) * (1 + (data['reviews'] / 100000))
                 metrics['reviewQualityScore'] = min(100, review_quality)
             else:
                 metrics['reviewQualityScore'] = 0
             
-            # Installation Velocity (estimated monthly installs)
-            if data['minInstalls'] > 0 and data['updated'] > 0:
-                days_since_update = (datetime.now().timestamp() - data['updated']) / 86400
-                if days_since_update > 0:
-                    metrics['estimatedMonthlyInstalls'] = int(data['minInstalls'] / (days_since_update / 30))
-                else:
-                    metrics['estimatedMonthlyInstalls'] = 0
-            else:
-                metrics['estimatedMonthlyInstalls'] = 0
-            
-            # User Engagement Score (0-100)
+            # Calculate engagement rate (0-100)
             if data['minInstalls'] > 0:
                 engagement = (data['reviews'] / data['minInstalls']) * 1000
-                metrics['userEngagementScore'] = min(100, engagement)
+                metrics['engagementScore'] = min(100, engagement)
             else:
-                metrics['userEngagementScore'] = 0
+                metrics['engagementScore'] = 0
+            
+            # Extract real install count from string
+            install_match = re.search(r'(\d+(?:,\d+)*)', data['installs'])
+            if install_match:
+                real_installs = int(install_match.group(1).replace(',', ''))
+                metrics['realInstalls'] = real_installs
+            else:
+                metrics['realInstalls'] = data['minInstalls']
             
             return metrics
-            
         except Exception as e:
-            logger.error(f"Error calculating additional metrics: {str(e)}")
+            logger.error(f"Error calculating metrics: {str(e)}")
             return {
                 'reviewQualityScore': 0,
-                'estimatedMonthlyInstalls': 0,
-                'userEngagementScore': 0
+                'engagementScore': 0,
+                'realInstalls': 0
             }
+
+    def _calculate_data_quality(self, data: Dict[str, Any]) -> str:
+        """Calculate data quality score"""
+        try:
+            required_fields = [
+                'title', 'description', 'score', 'reviews',
+                'installs', 'genre', 'developer'
+            ]
+            
+            optional_fields = [
+                'developerWebsite', 'video', 'recentChanges',
+                'contentRatingDescription', 'headerImage'
+            ]
+            
+            # Calculate completeness scores
+            required_score = sum(1 for field in required_fields if data.get(field)) / len(required_fields)
+            optional_score = sum(1 for field in optional_fields if data.get(field)) / len(optional_fields)
+            
+            # Calculate validity scores
+            valid_score = 0
+            total_checks = 0
+            
+            # Check numeric fields
+            if data['score'] >= 0 and data['score'] <= 5:
+                valid_score += 1
+            total_checks += 1
+            
+            if data['reviews'] >= 0:
+                valid_score += 1
+            total_checks += 1
+            
+            if data['minInstalls'] >= 0:
+                valid_score += 1
+            total_checks += 1
+            
+            # Check text fields
+            if len(data['description']) > 100:
+                valid_score += 1
+            total_checks += 1
+            
+            if len(data['title']) > 0:
+                valid_score += 1
+            total_checks += 1
+            
+            validity_score = valid_score / total_checks if total_checks > 0 else 0
+            
+            # Calculate final score
+            final_score = (required_score * 0.5) + (optional_score * 0.2) + (validity_score * 0.3)
+            
+            if final_score >= 0.8:
+                return "high"
+            elif final_score >= 0.5:
+                return "medium"
+            else:
+                return "low"
+            
+        except Exception as e:
+            logger.error(f"Error calculating data quality: {str(e)}")
+            return "unknown"

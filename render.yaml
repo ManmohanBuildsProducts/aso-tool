@@ -3,39 +3,12 @@ services:
     name: aso-tool
     env: python
     runtime: python3.11
-    buildCommand: |
-      # Install dependencies
-      pip install -r requirements.txt
-
-      # Install NLTK data
-      python -c "import nltk; nltk.download('punkt'); nltk.download('vader_lexicon')"
-
-      # Create necessary directories
-      mkdir -p static data logs
-
-    startCommand: |
-      PYTHONPATH=/opt/render/project/src/src \
-      gunicorn \
-        --workers 4 \
-        --worker-class uvicorn.workers.UvicornWorker \
-        --bind 0.0.0.0:$PORT \
-        --log-level info \
-        --timeout 120 \
-        --access-logfile - \
-        --error-logfile - \
-        app.main:app
-
+    buildCommand: pip install -r requirements.txt && python -c "import nltk; nltk.download('punkt'); nltk.download('vader_lexicon')"
+    startCommand: cd src && python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PYTHONPATH
         value: /opt/render/project/src/src
       - key: NLTK_DATA
         value: /opt/render/project/src/data
-      - key: STATIC_DIR
-        value: /opt/render/project/src/static
-      - key: PYTHON_ENV
-        value: production
-      - key: LOG_LEVEL
-        value: info
-
     healthCheckPath: /health
     autoDeploy: true

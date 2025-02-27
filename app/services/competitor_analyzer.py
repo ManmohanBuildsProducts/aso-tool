@@ -104,3 +104,39 @@ class CompetitorAnalyzer:
         
         below_value = sum(1 for x in comparison_values if x < value)
         return (below_value / len(comparison_values)) * 100
+
+    def _calculate_field_trend(self, values: List[float]) -> Dict[str, Any]:
+        """
+        Calculate trend metrics for a field
+        """
+        # Filter out None values and convert to float
+        valid_values = [float(v) for v in values if v is not None]
+        
+        if not valid_values:
+            return {
+                "current": 0,
+                "minimum": 0,
+                "maximum": 0,
+                "average": 0,
+                "direction": "stable",
+                "volatility": 0
+            }
+        
+        # Calculate basic metrics
+        min_val = min(valid_values)
+        max_val = max(valid_values)
+        avg_val = sum(valid_values) / len(valid_values)
+        
+        # Calculate trend direction
+        if len(valid_values) >= 2:
+            recent_change = valid_values[-1] - valid_values[-2]
+            trend_direction = "increasing" if recent_change > 0 else "decreasing" if recent_change < 0 else "stable"
+        else:
+            trend_direction = "stable"
+        
+        # Calculate volatility
+        if len(valid_values) >= 2:
+            changes = [abs(valid_values[i] - valid_values[i-1]) for i in range(1, len(valid_values))]
+            volatility = sum(changes) / len(changes)
+        else:
+            volatility = 0

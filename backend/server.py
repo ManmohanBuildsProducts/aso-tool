@@ -99,23 +99,69 @@ async def analyze_app(app_id: str):
 
 @app.get("/analyze/keywords")
 async def analyze_keywords(keywords: str):
-    """Analyze keyword opportunities"""
+    """Analyze keyword opportunities with enhanced insights"""
     try:
         keywords_list = keywords.split(",")
         results = []
         
         for keyword in keywords_list:
+            # Get keyword suggestions
+            suggestions = await keyword_analyzer.get_keyword_suggestions(keyword.strip())
+            
+            # Get keyword analysis
             keyword_data = {
                 "keyword": keyword.strip(),
-                "search_volume_score": 0,  # To be implemented with real data
-                "difficulty_score": 0,     # To be implemented with real data
+                "suggestions": suggestions[:10],  # Top 10 suggestions
+                "categories": [],  # Categories this keyword belongs to
+                "metrics": {
+                    "search_volume_score": 0,  # To be implemented with real data
+                    "difficulty_score": 0,     # To be implemented with real data
+                    "relevance_score": 0,      # To be implemented with real data
+                    "trend": "stable"          # Default trend
+                }
             }
-            analysis = await aso_analyzer.analyze_keyword_opportunity(keyword_data)
-            results.append({**keyword_data, **analysis})
+            
+            # Find relevant categories
+            for category, keywords in keyword_analyzer.keyword_categories.items():
+                if any(kw in keyword.lower() for kw in keywords):
+                    keyword_data["categories"].append(category)
+            
+            # Get opportunity analysis
+            opportunity = await aso_analyzer.analyze_keyword_opportunity(keyword_data)
+            keyword_data["opportunity"] = opportunity
+            
+            results.append(keyword_data)
         
         return results
     except Exception as e:
         logger.error(f"Error analyzing keywords: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/keywords/suggest/{base_keyword}")
+async def suggest_keywords(base_keyword: str, limit: int = 50):
+    """Get keyword suggestions based on a base keyword"""
+    try:
+        suggestions = await keyword_analyzer.get_keyword_suggestions(base_keyword)
+        return {
+            "base_keyword": base_keyword,
+            "suggestions": suggestions[:limit],
+            "total_suggestions": len(suggestions)
+        }
+    except Exception as e:
+        logger.error(f"Error getting keyword suggestions: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/keywords/categories")
+async def get_keyword_categories():
+    """Get all keyword categories and their keywords"""
+    try:
+        return {
+            "categories": keyword_analyzer.keyword_categories,
+            "total_categories": len(keyword_analyzer.keyword_categories),
+            "total_keywords": sum(len(kws) for kws in keyword_analyzer.keyword_categories.values())
+        }
+    except Exception as e:
+        logger.error(f"Error getting keyword categories: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/analyze/competitors/{app_id}")

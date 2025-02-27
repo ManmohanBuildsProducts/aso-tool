@@ -67,11 +67,13 @@ class UserBase(BaseModel):
 from .aso_analyzer import ASOAnalyzer
 from .scheduler import RankingScheduler
 from .keyword_analyzer import KeywordAnalyzer
+from .deepseek_analyzer import DeepseekAnalyzer
 
 # Initialize components
 aso_analyzer = ASOAnalyzer(db)
 ranking_scheduler = RankingScheduler(db)
 keyword_analyzer = KeywordAnalyzer(db)
+deepseek_analyzer = DeepseekAnalyzer("sk-340de15952f44634804e7ae35af95cd2")
 
 @app.on_event("startup")
 async def startup_event():

@@ -59,21 +59,29 @@ class CompetitorAnalyzer:
         """
         Compare various metrics between main app and competitors
         """
+        def safe_get(obj: Dict[str, Any], key: str, default: float = 0) -> float:
+            """Safely get a numeric value from dictionary"""
+            value = obj.get(key)
+            try:
+                return float(value) if value is not None else default
+            except (ValueError, TypeError):
+                return default
+
         metrics = {
             "ratings": {
-                "main_app": main_app.get("score", 0),
-                "competitors": [comp.get("score", 0) for comp in competitors],
-                "avg_competitor_rating": sum(comp.get("score", 0) for comp in competitors) / len(competitors) if competitors else 0
+                "main_app": safe_get(main_app, "score"),
+                "competitors": [safe_get(comp, "score") for comp in competitors],
+                "avg_competitor_rating": sum(safe_get(comp, "score") for comp in competitors) / len(competitors) if competitors else 0
             },
             "installs": {
-                "main_app": main_app.get("minInstalls", 0),
-                "competitors": [comp.get("minInstalls", 0) for comp in competitors],
-                "avg_competitor_installs": sum(comp.get("minInstalls", 0) for comp in competitors) / len(competitors) if competitors else 0
+                "main_app": safe_get(main_app, "minInstalls"),
+                "competitors": [safe_get(comp, "minInstalls") for comp in competitors],
+                "avg_competitor_installs": sum(safe_get(comp, "minInstalls") for comp in competitors) / len(competitors) if competitors else 0
             },
             "reviews": {
-                "main_app": main_app.get("reviews", 0),
-                "competitors": [comp.get("reviews", 0) for comp in competitors],
-                "avg_competitor_reviews": sum(comp.get("reviews", 0) for comp in competitors) / len(competitors) if competitors else 0
+                "main_app": safe_get(main_app, "reviews"),
+                "competitors": [safe_get(comp, "reviews") for comp in competitors],
+                "avg_competitor_reviews": sum(safe_get(comp, "reviews") for comp in competitors) / len(competitors) if competitors else 0
             }
         }
 
@@ -99,11 +107,26 @@ class CompetitorAnalyzer:
         """
         Calculate the percentile of a value within a list of comparison values
         """
-        if not comparison_values:
+        # Convert value to float and handle None/invalid values
+        try:
+            value = float(value) if value is not None else 0
+        except (ValueError, TypeError):
+            value = 0
+            
+        # Filter and convert comparison values
+        valid_comparisons = []
+        for x in comparison_values:
+            try:
+                x_float = float(x) if x is not None else 0
+                valid_comparisons.append(x_float)
+            except (ValueError, TypeError):
+                continue
+                
+        if not valid_comparisons:
             return 0
         
-        below_value = sum(1 for x in comparison_values if x < value)
-        return (below_value / len(comparison_values)) * 100
+        below_value = sum(1 for x in valid_comparisons if x < value)
+        return (below_value / len(valid_comparisons)) * 100
 
     def _calculate_field_trend(self, values: List[float]) -> Dict[str, Any]:
         """

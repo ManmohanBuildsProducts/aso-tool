@@ -1,9 +1,9 @@
 from fastapi import APIRouter, HTTPException
 from typing import List, Dict, Any
 from pydantic import BaseModel
-from ..services.competitor_analyzer import CompetitorAnalyzer
-from ..services.historical_tracker import HistoricalTracker
-from ..services.visualization import Visualizer
+from services.competitor_analyzer import CompetitorAnalyzer
+from services.historical_tracker import HistoricalTracker
+from services.visualization import Visualizer
 
 router = APIRouter()
 

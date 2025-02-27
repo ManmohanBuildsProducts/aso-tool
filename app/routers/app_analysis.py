@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from typing import Dict, Any
-from ..services.app_scraper import AppScraper
+from services.app_scraper import AppScraper
 
 router = APIRouter()
 

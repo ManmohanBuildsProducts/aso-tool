@@ -1,6 +1,6 @@
 from typing import List, Dict, Any
-from .app_scraper import AppScraper
-from .keyword_analyzer import KeywordAnalyzer
+from services.app_scraper import AppScraper
+from services.keyword_analyzer import KeywordAnalyzer
 import logging
 
 logger = logging.getLogger(__name__)

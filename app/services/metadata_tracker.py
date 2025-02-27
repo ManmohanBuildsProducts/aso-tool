@@ -3,8 +3,8 @@ import json
 import os
 from datetime import datetime, timedelta
 import logging
-from .app_scraper import AppScraper
-from .text_analyzer import TextAnalyzer
+from services.app_scraper import AppScraper
+from services.text_analyzer import TextAnalyzer
 
 logger = logging.getLogger(__name__)
 

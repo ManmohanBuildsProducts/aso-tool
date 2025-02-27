@@ -2,12 +2,12 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-from .routers import (
+from routers import (
     app_analysis, keyword_analysis, competitor_analysis,
     metadata_analysis, review_analysis, text_analysis,
     metadata_tracking
 )
-from .core.config import settings
+from core.config import settings
 
 app = FastAPI(
     title="ASO Tool API",
@@ -39,8 +39,8 @@ async def health_check():
     return {"status": "healthy"}
 
 # Serve static files
-app.mount("/static", StaticFiles(directory="frontend/dist/assets"), name="static")
+app.mount("/assets", StaticFiles(directory="../frontend/dist/assets"), name="static")
 
 @app.get("/{full_path:path}")
 async def serve_spa(full_path: str):
-    return FileResponse("frontend/dist/index.html")
+    return FileResponse("../frontend/dist/index.html")

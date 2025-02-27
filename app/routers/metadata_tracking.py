@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from typing import Dict, Any
-from ..services.metadata_tracker import MetadataTracker
+from services.metadata_tracker import MetadataTracker
 
 router = APIRouter()
 

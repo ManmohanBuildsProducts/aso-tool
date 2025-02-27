@@ -5,7 +5,7 @@ from nltk.tokenize import RegexpTokenizer
 from collections import Counter
 from typing import List, Dict, Any
 import re
-from .app_scraper import AppScraper
+from services.app_scraper import AppScraper
 import logging
 
 # Download required NLTK data

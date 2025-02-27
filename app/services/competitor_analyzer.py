@@ -13,7 +13,7 @@ class CompetitorAnalyzer:
 
     async def analyze_competitors(self, app_id: str, competitor_ids: List[str]) -> Dict[str, Any]:
         """
-        Perform comprehensive competitor analysis with improved error handling and data validation
+        Perform comprehensive competitor analysis with improved error handling
         """
         try:
             # Get main app details with validation
@@ -37,18 +37,17 @@ class CompetitorAnalyzer:
             
             return {
                 "status": "success",
-                "comparison": {
-                    "main_app": {
-                        "app_id": app_id,
-                        "details": main_app
-                    },
-                    "competitors": [
-                        {"app_id": comp["appId"], "details": comp}
-                        for comp in competitor_details
-                    ],
-                    "metrics_comparison": metrics_comparison
-                }
+                "main_app": {
+                    "app_id": app_id,
+                    "details": main_app
+                },
+                "competitors": [
+                    {"app_id": comp["appId"], "details": comp}
+                    for comp in competitor_details
+                ],
+                "metrics_comparison": metrics_comparison
             }
+            
         except Exception as e:
             logger.error(f"Error analyzing competitors: {str(e)}")
             return self._get_error_response(str(e))

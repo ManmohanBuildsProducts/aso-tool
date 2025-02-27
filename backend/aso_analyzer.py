@@ -154,48 +154,73 @@ class ASOAnalyzer:
         Analyze B2B-specific ASO metrics
         """
         try:
-            b2b_keywords = [
-                "wholesale", "b2b", "business", "supplier", "distributor",
-                "bulk", "trade", "manufacturer", "inventory", "procurement",
-                "supply chain", "vendor", "enterprise", "commercial", "industrial"
-            ]
+            # B2B-specific keyword categories
+            keyword_categories = {
+                "core_business": ["b2b", "wholesale", "business"],
+                "user_type": ["retailer", "distributor", "manufacturer", "supplier"],
+                "functionality": ["ordering", "procurement", "inventory", "supply chain"],
+                "industry": ["kirana", "fmcg", "grocery", "fashion"],
+                "value_prop": ["bulk", "direct", "doorstep delivery", "best price"]
+            }
             
             analysis = {
-                "keyword_coverage": {},
+                "category_coverage": {},
                 "competitor_comparison": {},
                 "opportunities": []
             }
             
-            # Analyze keyword coverage
+            # Analyze keyword coverage by category
             app_data = await self.db.apps.find_one({"_id": app_id})
             if app_data:
                 metadata = app_data.get('metadata', {})
                 title = metadata.get('title', '').lower()
                 description = metadata.get('full_description', '').lower()
                 
-                for keyword in b2b_keywords:
-                    in_title = keyword in title
-                    in_description = keyword in description
-                    analysis["keyword_coverage"][keyword] = {
-                        "in_title": in_title,
-                        "in_description": in_description,
-                        "recommendation": "Add to title" if not in_title else "Optimize placement"
+                # Analyze coverage for each category
+                for category, keywords in keyword_categories.items():
+                    category_coverage = {
+                        "keywords_found": [],
+                        "coverage_score": 0,
+                        "recommendations": []
                     }
+                    
+                    for keyword in keywords:
+                        in_title = keyword in title
+                        in_description = keyword in description
+                        if in_title or in_description:
+                            category_coverage["keywords_found"].append(keyword)
+                    
+                    # Calculate coverage score
+                    coverage_score = len(category_coverage["keywords_found"]) / len(keywords) * 100
+                    category_coverage["coverage_score"] = coverage_score
+                    
+                    # Generate recommendations
+                    if coverage_score < 50:
+                        category_coverage["recommendations"].append(
+                            f"Add more {category} keywords to improve visibility"
+                        )
+                    
+                    analysis["category_coverage"][category] = category_coverage
             
-            # Get competitor rankings for these keywords
+            # Get competitor rankings for all keywords
+            all_keywords = [kw for keywords in keyword_categories.values() for kw in keywords]
             competitor_rankings = await self.db.rankings.find({
-                "keyword": {"$in": b2b_keywords}
+                "keyword": {"$in": all_keywords}
             }).to_list(length=100)
             
             if competitor_rankings:
-                for keyword in b2b_keywords:
-                    keyword_ranks = [r for r in competitor_rankings if r["keyword"] == keyword]
-                    if keyword_ranks:
-                        analysis["competitor_comparison"][keyword] = {
-                            "avg_rank": sum(r["rank"] for r in keyword_ranks) / len(keyword_ranks),
-                            "best_rank": min(r["rank"] for r in keyword_ranks),
-                            "opportunity_score": self._calculate_opportunity_score(keyword_ranks)
-                        }
+                for category, keywords in keyword_categories.items():
+                    for keyword in keywords:
+                        keyword_ranks = [r for r in competitor_rankings if r["keyword"] == keyword]
+                        if keyword_ranks:
+                            if category not in analysis["competitor_comparison"]:
+                                analysis["competitor_comparison"][category] = {}
+                            
+                            analysis["competitor_comparison"][category][keyword] = {
+                                "avg_rank": sum(r["rank"] for r in keyword_ranks) / len(keyword_ranks),
+                                "best_rank": min(r["rank"] for r in keyword_ranks),
+                                "opportunity_score": self._calculate_opportunity_score(keyword_ranks)
+                            }
             
             return analysis
         except Exception as e:

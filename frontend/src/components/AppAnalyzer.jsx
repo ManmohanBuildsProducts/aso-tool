@@ -105,7 +105,9 @@ const AppAnalyzer = () => {
     try {
       // Get main app analysis
       const appResponse = await fetch(`/api/analyze/app/${mainApp.appId}`);
+      if (!appResponse.ok) throw new Error('App analysis failed');
       const appData = await appResponse.json();
+      console.log('App analysis:', appData);
 
       // Get competitor analysis if there are competitors
       let competitorData = null;
@@ -120,7 +122,9 @@ const AppAnalyzer = () => {
             competitor_ids: competitors.map(comp => comp.appId),
           }),
         });
+        if (!competitorResponse.ok) throw new Error('Competitor analysis failed');
         competitorData = await competitorResponse.json();
+        console.log('Competitor analysis:', competitorData);
       }
 
       // Get keyword analysis
@@ -134,16 +138,19 @@ const AppAnalyzer = () => {
           competitor_ids: competitors.map(comp => comp.appId),
         }),
       });
+      if (!keywordResponse.ok) throw new Error('Keyword analysis failed');
       const keywordData = await keywordResponse.json();
+      console.log('Keyword analysis:', keywordData);
 
       setAnalysisResults({
         appAnalysis: appData,
         competitorAnalysis: competitorData,
         keywordAnalysis: keywordData
       });
+      setActiveTab(0); // Switch to Overview tab after analysis
     } catch (error) {
       console.error('Analysis failed:', error);
-      alert('Analysis failed. Please try again.');
+      alert('Analysis failed: ' + error.message);
     } finally {
       setMainApp({ ...mainApp, loading: false });
       setCompetitors(competitors.map(comp => ({ ...comp, loading: false })));
@@ -350,16 +357,76 @@ const AppAnalyzer = () => {
     );
   };
 
-  const renderOverviewTab = () => (
-    <Grid container spacing={3}>
-      <Grid item xs={12}>
-        <Paper elevation={2} sx={{ p: 2 }}>
-          <Typography variant="h6">Comparison Summary</Typography>
-          {/* Add comparison charts and metrics */}
-        </Paper>
+  const renderOverviewTab = () => {
+    if (!analysisResults?.appAnalysis?.data) return null;
+
+    const appData = analysisResults.appAnalysis.data;
+    const competitors = analysisResults.competitorAnalysis?.comparison?.competitors || [];
+
+    return (
+      <Grid container spacing={3}>
+        <Grid item xs={12}>
+          <Paper elevation={2} sx={{ p: 2 }}>
+            <Typography variant="h6" gutterBottom>Your App Overview</Typography>
+            <Box sx={{ mb: 2 }}>
+              <Typography><strong>Name:</strong> {appData.title}</Typography>
+              <Typography><strong>Installs:</strong> {appData.installs}</Typography>
+              <Typography><strong>Rating:</strong> {appData.score || 'N/A'}</Typography>
+              <Typography><strong>Reviews:</strong> {appData.reviews || 'N/A'}</Typography>
+              <Typography><strong>Category:</strong> {appData.genre}</Typography>
+              <Typography><strong>Last Updated:</strong> {new Date(appData.updated * 1000).toLocaleDateString()}</Typography>
+            </Box>
+          </Paper>
+        </Grid>
+
+        {competitors.length > 0 && (
+          <Grid item xs={12}>
+            <Paper elevation={2} sx={{ p: 2 }}>
+              <Typography variant="h6" gutterBottom>Competitor Analysis</Typography>
+              {competitors.map((comp, index) => (
+                <Box key={index} sx={{ mb: 2 }}>
+                  <Typography variant="subtitle1" gutterBottom><strong>{comp.details.title}</strong></Typography>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6}>
+                      <Typography><strong>Installs:</strong> {comp.details.installs}</Typography>
+                      <Typography><strong>Rating:</strong> {comp.details.score || 'N/A'}</Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <Typography><strong>Reviews:</strong> {comp.details.reviews || 'N/A'}</Typography>
+                      <Typography><strong>Category:</strong> {comp.details.genre}</Typography>
+                    </Grid>
+                  </Grid>
+                </Box>
+              ))}
+            </Paper>
+          </Grid>
+        )}
+
+        {analysisResults.keywordAnalysis && (
+          <Grid item xs={12}>
+            <Paper elevation={2} sx={{ p: 2 }}>
+              <Typography variant="h6" gutterBottom>Keyword Analysis</Typography>
+              <Box>
+                <Typography variant="subtitle1" gutterBottom><strong>Common Keywords with Competitors:</strong></Typography>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+                  {analysisResults.keywordAnalysis.analysis.keyword_comparison.common_keywords.map((keyword, index) => (
+                    <Chip key={index} label={keyword} color="primary" variant="outlined" />
+                  ))}
+                </Box>
+
+                <Typography variant="subtitle1" gutterBottom><strong>Your Unique Keywords:</strong></Typography>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                  {analysisResults.keywordAnalysis.analysis.keyword_comparison.unique_keywords.map((keyword, index) => (
+                    <Chip key={index} label={keyword} color="success" variant="outlined" />
+                  ))}
+                </Box>
+              </Box>
+            </Paper>
+          </Grid>
+        )}
       </Grid>
-    </Grid>
-  );
+    );
+  };
 
   const renderKeywordsTab = () => (
     <Grid container spacing={3}>

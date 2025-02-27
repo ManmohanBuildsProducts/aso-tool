@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends, status, Body
+from fastapi import FastAPI, HTTPException, Depends, status, Body, Query
 from fastapi.security import OAuth2PasswordBearer
 from fastapi.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -168,6 +168,79 @@ async def get_keyword_categories():
         }
     except Exception as e:
         logger.error(f"Error getting keyword categories: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# New AI-powered endpoints
+@app.get("/ai/rankings/analyze/{app_id}")
+async def analyze_rankings(app_id: str, days: int = 30):
+    """Get AI analysis of ranking changes"""
+    try:
+        return await ranking_analyzer.analyze_ranking_changes(app_id, days)
+    except Exception as e:
+        logger.error(f"Error analyzing rankings: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/ai/rankings/predict/{app_id}/{keyword}")
+async def predict_rankings(app_id: str, keyword: str):
+    """Get AI predictions for keyword ranking"""
+    try:
+        return await ranking_analyzer.predict_ranking_trends(app_id, keyword)
+    except Exception as e:
+        logger.error(f"Error predicting rankings: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/ai/competitors/impact/{app_id}")
+async def analyze_competitor_impact(
+    app_id: str,
+    competitor_ids: List[str] = Query(...)
+):
+    """Analyze competitor impact on rankings"""
+    try:
+        return await ranking_analyzer.analyze_competitor_impact(app_id, competitor_ids)
+    except Exception as e:
+        logger.error(f"Error analyzing competitor impact: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/ai/metadata/title/{app_id}")
+async def optimize_title(
+    app_id: str,
+    keywords: List[str] = Body(...)
+):
+    """Get AI-optimized title suggestions"""
+    try:
+        return await metadata_optimizer.optimize_app_title(app_id, keywords)
+    except Exception as e:
+        logger.error(f"Error optimizing title: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/ai/metadata/screenshots/{app_id}")
+async def analyze_screenshots(app_id: str):
+    """Get AI analysis of screenshot effectiveness"""
+    try:
+        return await metadata_optimizer.analyze_screenshot_impact(app_id)
+    except Exception as e:
+        logger.error(f"Error analyzing screenshots: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/ai/metadata/features/{app_id}")
+async def generate_features(
+    app_id: str,
+    keywords: List[str] = Body(...)
+):
+    """Get AI-generated feature bullets"""
+    try:
+        return await metadata_optimizer.generate_feature_bullets(app_id, keywords)
+    except Exception as e:
+        logger.error(f"Error generating features: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/ai/reviews/analyze/{app_id}")
+async def analyze_reviews(app_id: str):
+    """Get AI analysis of review keywords"""
+    try:
+        return await metadata_optimizer.analyze_review_keywords(app_id)
+    except Exception as e:
+        logger.error(f"Error analyzing reviews: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/ai/analyze/{app_id}")

@@ -33,6 +33,7 @@ health_checker = HealthCheck()
 
 # Configure static files and templates
 import os
+import sys
 import logging
 from pathlib import Path
 from fastapi.responses import FileResponse
@@ -45,15 +46,27 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Log important environment information
+logger.info(f"Python version: {sys.version}")
+logger.info(f"Current working directory: {os.getcwd()}")
+logger.info(f"PYTHONPATH: {os.getenv('PYTHONPATH')}")
+logger.info(f"Directory contents: {os.listdir('.')}")
+
 # Get static directory from environment variable or use default
-static_dir = os.getenv(
-    "STATIC_DIR",
-    str(Path(__file__).parent.parent.parent / "static")
-)
+static_dir = os.getenv("STATIC_DIR")
+if not static_dir:
+    static_dir = str(Path(__file__).parent.parent.parent / "static")
+    logger.warning(f"STATIC_DIR not set, using default: {static_dir}")
+else:
+    logger.info(f"Using STATIC_DIR from environment: {static_dir}")
 
 # Create static directory if it doesn't exist
-os.makedirs(static_dir, exist_ok=True)
-logger.info(f"Using static directory: {static_dir}")
+try:
+    os.makedirs(static_dir, exist_ok=True)
+    logger.info(f"Static directory ensured at: {static_dir}")
+except Exception as e:
+    logger.error(f"Failed to create static directory: {str(e)}")
+    raise
 
 try:
     # Mount static files
@@ -61,6 +74,7 @@ try:
     logger.info("Successfully mounted static files")
 except Exception as e:
     logger.error(f"Failed to mount static files: {str(e)}")
+    logger.error(f"Static directory contents: {os.listdir(static_dir) if os.path.exists(static_dir) else 'directory not found'}")
     raise
 
 # Include routers

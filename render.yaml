@@ -4,27 +4,30 @@ services:
     env: python
     runtime: python3.11
     buildCommand: |
-      # Update pip and install build tools
-      python -m pip install --upgrade pip
-      pip install wheel setuptools
-
-      # Install the package in editable mode
-      pip install -e .
+      # Install dependencies
+      pip install -r requirements.txt
 
       # Install NLTK data
       python -c "import nltk; nltk.download('punkt'); nltk.download('vader_lexicon')"
 
       # Create necessary directories
-      mkdir -p static
-      mkdir -p data
+      mkdir -p static data logs
 
     startCommand: |
-      cd /opt/render/project/src && \
-      gunicorn -c gunicorn_config.py 'src.app.main:app'
+      PYTHONPATH=/opt/render/project/src/src \
+      gunicorn \
+        --workers 4 \
+        --worker-class uvicorn.workers.UvicornWorker \
+        --bind 0.0.0.0:$PORT \
+        --log-level info \
+        --timeout 120 \
+        --access-logfile - \
+        --error-logfile - \
+        app.main:app
 
     envVars:
       - key: PYTHONPATH
-        value: /opt/render/project/src
+        value: /opt/render/project/src/src
       - key: NLTK_DATA
         value: /opt/render/project/src/data
       - key: STATIC_DIR

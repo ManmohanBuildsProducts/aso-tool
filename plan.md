@@ -1,21 +1,21 @@
-# ASO Dashboard Frontend Plan
+# ASO Tool System Redesign Plan
 
 ## Problem Analysis & Purpose
-Create an intuitive, real-time ASO dashboard for B2B/wholesale clients that transforms complex app store optimization data into actionable insights. The application will focus on delivering AI-powered recommendations with a polished, modern interface.
+The ASO tool requires a comprehensive redesign focusing on three key areas: UI/UX enhancement, data pipeline optimization, and system architecture improvement. The goal is to provide marketing teams with an intuitive, powerful platform that delivers actionable insights through AI-powered analysis and real-time monitoring.
 
 ## Core Features
-- Interactive dashboard with real-time metrics
-- Advanced keyword analysis with trend visualization
-- Competitor tracking with side-by-side comparison
-- AI-powered metadata optimization
-- Review sentiment analysis with key insights
-- Screenshot effectiveness analyzer with AI scoring
-- **Standout Feature**: AI-powered "ASO Opportunity Score" - A unique metric combining keyword potential, competitor gaps, and market trends into a single actionable score
-- Clean, Modern UI
-  - Interactive dashboards with real-time updates
-  - Dark/light theme support
-  - Mobile-first responsive design
-  - Drag-and-drop widget customization
+- Unified Analytics Dashboard with Real-time Health Score
+- Smart Action Center with AI-prioritized Tasks
+- Visual Competitor Analysis with Market Position Tracking
+- Predictive Keyword Optimization Engine
+- Automated Metadata Health Analysis
+- **Standout Feature**: ASO Impact Simulator - AI-powered tool that predicts potential ranking and visibility changes before implementing metadata updates
+- Modern UI with:
+  - Customizable widget-based dashboard
+  - Interactive data visualizations
+  - Dark/light theme
+  - Mobile-first design
+  - Context-aware navigation
 
 ## Technical Architecture
 This application requires a proper directory structure due to its complexity:

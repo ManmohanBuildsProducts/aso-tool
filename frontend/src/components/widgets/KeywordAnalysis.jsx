@@ -3,8 +3,21 @@ import { useQuery } from 'react-query';
 import { fetchKeywordAnalysis } from '../../services/api';
 import { HiSearch, HiTrendingUp, HiTrendingDown } from 'react-icons/hi';
 
-const KeywordAnalysis = ({ keywords, appId }) => {
+const KeywordAnalysis = ({ keywords, appId, insights }) => {
   const [selectedKeyword, setSelectedKeyword] = useState(keywords?.[0]?.keyword);
+  
+  // Extract recommendations from insights
+  const recommendations = React.useMemo(() => {
+    if (!insights) return [];
+    
+    return insights
+      .split('\n')
+      .filter(line => 
+        line.toLowerCase().includes('recommend') || 
+        line.toLowerCase().includes('suggest')
+      )
+      .map(line => line.trim());
+  }, [insights]);
 
   const { data: analysis, isLoading } = useQuery(
     ['keywordAnalysis', selectedKeyword],

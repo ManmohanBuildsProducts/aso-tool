@@ -2,8 +2,28 @@ import React from 'react';
 import { ResponsiveScatterPlot } from '@nivo/scatterplot';
 import { HiInformationCircle } from 'react-icons/hi';
 
-const MarketPosition = ({ position }) => {
-  if (!position?.data) {
+const MarketPosition = ({ data }) => {
+  // Extract insights from competitive advantages text
+  const insights = React.useMemo(() => {
+    if (!data) return [];
+    
+    return data
+      .split('\n')
+      .filter(line => line.trim().startsWith('-') || line.trim().startsWith('•'))
+      .map(line => line.replace(/^[-•]\s*/, '').trim());
+  }, [data]);
+
+  // Generate mock position data for visualization
+  const positionData = React.useMemo(() => {
+    return insights.map((insight, index) => ({
+      id: index,
+      x: 50 + Math.random() * 30 - 15,  // Cluster around center
+      y: 50 + Math.random() * 30 - 15,
+      name: insight
+    }));
+  }, [insights]);
+
+  if (!data) {
     return (
       <div className="bg-white rounded-xl shadow-lg p-6 h-[400px] flex items-center justify-center">
         <div className="text-center text-gray-500">

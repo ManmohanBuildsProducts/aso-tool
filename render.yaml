@@ -4,16 +4,38 @@ services:
     env: python
     runtime: python3.11
     buildCommand: |
-      pip install -r requirements.txt
+      # Update pip and install build tools
+      python -m pip install --upgrade pip
+      pip install wheel setuptools
+
+      # Install the package in editable mode
+      pip install -e .
+
+      # Install NLTK data
       python -c "import nltk; nltk.download('punkt'); nltk.download('vader_lexicon')"
-      mkdir -p src/app/static
-    startCommand: cd src && python wsgi.py
+
+      # Create necessary directories
+      mkdir -p static
+      mkdir -p data
+
+    startCommand: |
+      cd /opt/render/project/src && \
+      gunicorn --workers 4 --worker-class uvicorn.workers.UvicornWorker \
+      --bind 0.0.0.0:$PORT --log-level info \
+      --timeout 120 --preload \
+      'src.app.main:app'
+
     envVars:
       - key: PYTHONPATH
-        value: /opt/render/project/src/src
+        value: /opt/render/project/src
       - key: NLTK_DATA
-        value: /opt/render/nltk_data
+        value: /opt/render/project/src/data
       - key: STATIC_DIR
-        value: /opt/render/project/src/src/app/static
+        value: /opt/render/project/src/static
+      - key: PYTHON_ENV
+        value: production
+      - key: LOG_LEVEL
+        value: info
+
     healthCheckPath: /health
     autoDeploy: true

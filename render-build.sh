@@ -1,20 +1,11 @@
 #!/usr/bin/env bash
-# exit on error
 set -o errexit
 
-# Install python dependencies
+echo "🔧 Installing Python dependencies..."
+python -m pip install --upgrade pip
 pip install -r requirements.txt
 
-# Install Node.js
-curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-apt-get install -y nodejs
+echo "📦 Installing NLTK data..."
+python -c "import nltk; nltk.download('punkt'); nltk.download('vader_lexicon')"
 
-# Build frontend
-cd frontend
-npm install
-npm run build
-cd ..
-
-# Create static directory
-mkdir -p app/static
-cp -r frontend/dist/* app/static/
+echo "✅ Build completed!"

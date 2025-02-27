@@ -3,7 +3,7 @@ import json
 from datetime import datetime, timedelta
 import os
 import logging
-from services.app_scraper import AppScraper
+from app.services.app_scraper import AppScraper
 
 logger = logging.getLogger(__name__)
 

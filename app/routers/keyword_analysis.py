@@ -1,9 +1,9 @@
 from fastapi import APIRouter, HTTPException
 from typing import List, Dict, Any
 from pydantic import BaseModel
-from services.keyword_analyzer import KeywordAnalyzer
-from services.keyword_scorer import KeywordScorer
-from services.visualization import Visualizer
+from app.services.keyword_analyzer import KeywordAnalyzer
+from app.services.keyword_scorer import KeywordScorer
+from app.services.visualization import Visualizer
 
 router = APIRouter()
 

@@ -1,6 +1,6 @@
 from typing import List, Dict, Any, Optional
-from services.app_scraper import AppScraper
-from services.keyword_analyzer import KeywordAnalyzer
+from app.services.app_scraper import AppScraper
+from app.services.keyword_analyzer import KeywordAnalyzer
 import logging
 from datetime import datetime
 
@@ -60,8 +60,58 @@ class CompetitorAnalyzer:
             logger.error(f"Error analyzing competitors: {str(e)}")
             return self._get_error_response(str(e))
 
+    def _get_default_metrics(self) -> Dict[str, Any]:
+        """Return default metrics structure"""
+        return {
+            "ratings": {"absolute": 0, "percentage": 0},
+            "reviews": {"absolute": 0, "percentage": 0},
+            "size": {"absolute": 0, "percentage": 0},
+            "installs": {"absolute": 0, "percentage": 0},
+            "version": {"absolute": 0, "percentage": 0}
+        }
+
+    def _compare_metrics(self, main_app: Optional[Dict[str, Any]], competitor_apps: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Compare metrics between main app and competitors"""
+        if not main_app:
+            return {}
+            
+        comparisons = {}
+        for competitor in competitor_apps:
+            if not competitor:
+                continue
+                
+            try:
+                comparison = {
+                    "ratings": self._calculate_difference(
+                        self._safe_float(main_app.get("score")),
+                        self._safe_float(competitor.get("score"))
+                    ),
+                    "reviews": self._calculate_difference(
+                        self._safe_float(main_app.get("reviews")),
+                        self._safe_float(competitor.get("reviews"))
+                    ),
+                    "size": self._calculate_difference(
+                        self._safe_float(main_app.get("size")),
+                        self._safe_float(competitor.get("size"))
+                    ),
+                    "installs": self._calculate_difference(
+                        self._safe_float(main_app.get("installs")),
+                        self._safe_float(competitor.get("installs"))
+                    ),
+                    "version": self._calculate_version_difference(
+                        main_app.get("version", "0"),
+                        competitor.get("version", "0")
+                    )
+                }
+                comparisons[competitor.get("appId", "unknown")] = comparison
+            except Exception as e:
+                logger.error(f"Error comparing metrics for competitor {competitor.get('appId', 'unknown')}: {str(e)}")
+                continue
+                
+        return comparisons
+
     def _get_error_response(self, message: str) -> Dict[str, Any]:
-        """Return a standardized error response"""
+        """Return error response with default metrics"""
         return {
             "status": "error",
             "message": message,
@@ -371,21 +421,67 @@ class CompetitorAnalyzer:
                 "total_market_size": 0
             }
 
-    def _calculate_difference(self, value1: float, value2: float) -> Dict[str, Any]:
-        """Calculate difference with percentage"""
+    def _safe_float(self, value: Any) -> float:
+        """Safely convert any value to float, handling None and 'Unknown'"""
+        if value is None or value == "Unknown":
+            return 0.0
         try:
-            absolute_diff = value1 - value2
-            if value2 != 0:
-                percentage_diff = (absolute_diff / value2) * 100
+            return float(value)
+        except (ValueError, TypeError):
+            return 0.0
+
+    def _calculate_difference(self, value1: Optional[float], value2: Optional[float]) -> Dict[str, Any]:
+        """Calculate difference with percentage, handling None values"""
+        try:
+            # Convert None values to 0
+            val1 = float(value1 or 0)
+            val2 = float(value2 or 0)
+            
+            absolute_diff = val1 - val2
+            if val2 != 0:
+                percentage_diff = (absolute_diff / val2) * 100
             else:
-                percentage_diff = 0 if value1 == 0 else 100
+                percentage_diff = 0 if val1 == 0 else 100
             
             return {
                 "absolute": round(absolute_diff, 2),
                 "percentage": round(percentage_diff, 2)
             }
             
-        except Exception:
+        except (TypeError, ValueError) as e:
+            logger.warning(f"Error calculating difference: {str(e)}")
+            return {
+                "absolute": 0,
+                "percentage": 0
+            }
+
+    def _calculate_version_difference(self, version1: str, version2: str) -> Dict[str, Any]:
+        """Calculate version difference, handling unknown versions"""
+        try:
+            # Handle unknown versions
+            if version1 == "Unknown" or version2 == "Unknown":
+                return {
+                    "absolute": 0,
+                    "percentage": 0
+                }
+            
+            # Convert version strings to numbers (e.g., "1.2.3" -> 123)
+            v1_num = float("".join(version1.split(".")[:3]) or 0)
+            v2_num = float("".join(version2.split(".")[:3]) or 0)
+            
+            absolute_diff = v1_num - v2_num
+            if v2_num != 0:
+                percentage_diff = (absolute_diff / v2_num) * 100
+            else:
+                percentage_diff = 0 if v1_num == 0 else 100
+            
+            return {
+                "absolute": round(absolute_diff, 2),
+                "percentage": round(percentage_diff, 2)
+            }
+            
+        except (TypeError, ValueError) as e:
+            logger.warning(f"Error calculating version difference: {str(e)}")
             return {
                 "absolute": 0,
                 "percentage": 0

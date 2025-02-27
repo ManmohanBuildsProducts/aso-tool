@@ -4,14 +4,14 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
 
-from routers import (
+from app.routers import (
     app_analysis, keyword_analysis, competitor_analysis,
     metadata_analysis, review_analysis, text_analysis,
     metadata_tracking
 )
-from core.config import settings
-from core.health import HealthCheck
-from core.error_handler import ErrorHandler
+from app.core.config import settings
+from app.core.health import HealthCheck
+from app.core.error_handler import ErrorHandler
 
 app = FastAPI(
     title="ASO Tool API",
@@ -32,7 +32,10 @@ app.add_middleware(
 health_checker = HealthCheck()
 
 # Mount static files
-app.mount("/assets", StaticFiles(directory="../frontend/dist/assets"), name="static")
+# Mount static files only if directory exists
+import os
+if os.path.exists("../frontend/dist/assets"):
+    app.mount("/assets", StaticFiles(directory="../frontend/dist/assets"), name="static")
 
 # Include routers
 app.include_router(app_analysis.router, prefix="/api", tags=["App Analysis"])

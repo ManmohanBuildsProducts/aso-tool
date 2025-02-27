@@ -5,7 +5,7 @@ import nltk
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 import logging
-from services.app_scraper import AppScraper
+from app.services.app_scraper import AppScraper
 
 # Download required NLTK data
 try:

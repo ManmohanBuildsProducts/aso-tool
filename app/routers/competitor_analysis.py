@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from typing import List, Dict, Any
 from pydantic import BaseModel
-from services.competitor_analyzer import CompetitorAnalyzer
+from app.services.competitor_analyzer import CompetitorAnalyzer
 import logging
 
 logger = logging.getLogger(__name__)

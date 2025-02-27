@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from typing import Dict, Any, List
-from services.review_analyzer import ReviewAnalyzer
+from app.services.review_analyzer import ReviewAnalyzer
 
 router = APIRouter()
 

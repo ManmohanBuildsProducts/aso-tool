@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel, Field
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 import logging
 from pathlib import Path
@@ -63,9 +63,96 @@ class UserBase(BaseModel):
     role: str = "marketing"
 
 # API endpoints
+from .aso_analyzer import ASOAnalyzer
+
+# Initialize ASO analyzer
+aso_analyzer = ASOAnalyzer(db)
+
 @app.get("/")
 async def root():
-    return {"status": "healthy", "service": "Play Store Ranking Tracker"}
+    return {"status": "healthy", "service": "Play Store ASO Tracker"}
+
+@app.get("/analyze/app/{app_id}")
+async def analyze_app(app_id: str):
+    """Get comprehensive ASO analysis for an app"""
+    try:
+        recommendations = await aso_analyzer.generate_aso_recommendations(app_id)
+        b2b_metrics = await aso_analyzer.analyze_b2b_specific_metrics(app_id)
+        
+        return {
+            "recommendations": recommendations,
+            "b2b_metrics": b2b_metrics
+        }
+    except Exception as e:
+        logger.error(f"Error analyzing app {app_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/analyze/keywords")
+async def analyze_keywords(keywords: str):
+    """Analyze keyword opportunities"""
+    try:
+        keywords_list = keywords.split(",")
+        results = []
+        
+        for keyword in keywords_list:
+            keyword_data = {
+                "keyword": keyword.strip(),
+                "search_volume_score": 0,  # To be implemented with real data
+                "difficulty_score": 0,     # To be implemented with real data
+            }
+            analysis = await aso_analyzer.analyze_keyword_opportunity(keyword_data)
+            results.append({**keyword_data, **analysis})
+        
+        return results
+    except Exception as e:
+        logger.error(f"Error analyzing keywords: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/analyze/competitors/{app_id}")
+async def analyze_competitors(app_id: str):
+    """Get competitor analysis for an app"""
+    try:
+        app = await db.apps.find_one({"_id": app_id})
+        if not app:
+            raise HTTPException(status_code=404, detail="App not found")
+            
+        competitors = await db.apps.find({"is_competitor": True}).to_list(length=100)
+        
+        analyses = []
+        for competitor in competitors:
+            analysis = await aso_analyzer.analyze_competitor_metadata(
+                app.get("metadata", {}),
+                competitor.get("metadata", {})
+            )
+            analyses.append({
+                "competitor_id": str(competitor["_id"]),
+                "competitor_name": competitor["name"],
+                "analysis": analysis
+            })
+        
+        return analyses
+    except Exception as e:
+        logger.error(f"Error analyzing competitors: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/rankings/history/{app_id}")
+async def get_ranking_history(app_id: str, days: int = 30):
+    """Get ranking history for an app"""
+    try:
+        cutoff_date = datetime.utcnow() - timedelta(days=days)
+        rankings = await db.rankings.find({
+            "app_id": app_id,
+            "date": {"$gte": cutoff_date}
+        }).sort("date", -1).to_list(length=1000)
+        
+        return [{
+            "date": r["date"].isoformat(),
+            "keyword": r["keyword"],
+            "rank": r["rank"]
+        } for r in rankings]
+    except Exception as e:
+        logger.error(f"Error fetching ranking history: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 # App management endpoints
 @app.post("/apps/", response_model=AppBase)

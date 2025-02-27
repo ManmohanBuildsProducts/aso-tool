@@ -7,6 +7,7 @@ from typing import List, Optional
 from datetime import datetime, timedelta
 import os
 import logging
+import asyncio
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -64,9 +65,16 @@ class UserBase(BaseModel):
 
 # API endpoints
 from .aso_analyzer import ASOAnalyzer
+from .scheduler import RankingScheduler
 
-# Initialize ASO analyzer
+# Initialize components
 aso_analyzer = ASOAnalyzer(db)
+ranking_scheduler = RankingScheduler(db)
+
+@app.on_event("startup")
+async def startup_event():
+    """Start the ranking scheduler on app startup"""
+    asyncio.create_task(ranking_scheduler.start())
 
 @app.get("/")
 async def root():
@@ -133,6 +141,16 @@ async def analyze_competitors(app_id: str):
         return analyses
     except Exception as e:
         logger.error(f"Error analyzing competitors: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/rankings/check")
+async def force_ranking_check():
+    """Force an immediate ranking check"""
+    try:
+        await ranking_scheduler.force_check()
+        return {"status": "success", "message": "Ranking check initiated"}
+    except Exception as e:
+        logger.error(f"Error forcing ranking check: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/rankings/history/{app_id}")

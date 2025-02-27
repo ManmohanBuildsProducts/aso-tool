@@ -1,7 +1,7 @@
 import React from 'react';
 import { HiExclamationCircle } from 'react-icons/hi';
 
-class ErrorBoundary extends React.Component {
+export default class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
     this.state = { hasError: false, error: null };

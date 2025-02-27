@@ -32,20 +32,10 @@ const Dashboard = ({ appId }) => {
     }
   );
 
-  if (isLoading) return <LoadingState message="Analyzing app data..." />;
-  if (error) {
-    return (
-      <ErrorBoundary showReset>
-        <div>Error loading dashboard data</div>
-      </ErrorBoundary>
-    );
-  }
-
   // Transform sections into actions
   const actions = React.useMemo(() => {
-    if (!data?.sections) return [];
-    
-    return Object.entries(data.sections)
+    const sections = data?.sections || {};
+    return Object.entries(sections)
       .filter(([key]) => key.includes('recommendations') || key.includes('actions'))
       .flatMap(([_, value]) => {
         return value.split('\n')
@@ -69,9 +59,7 @@ const Dashboard = ({ appId }) => {
 
   // Transform sections into keywords
   const keywords = React.useMemo(() => {
-    if (!data?.sections?.['keyword opportunities']) return [];
-    
-    const keywordSection = data.sections['keyword opportunities'];
+    const keywordSection = data?.sections?.['keyword opportunities'] || '';
     return keywordSection.split('\n')
       .filter(line => line.trim().startsWith('-') || line.trim().startsWith('•'))
       .map(line => ({
@@ -79,6 +67,15 @@ const Dashboard = ({ appId }) => {
         relevance: Math.random() * 100  // TODO: Implement proper relevance calculation
       }));
   }, [data?.sections]);
+
+  if (isLoading) return <LoadingState message="Analyzing app data..." />;
+  if (error) {
+    return (
+      <ErrorBoundary showReset>
+        <div>Error loading dashboard data</div>
+      </ErrorBoundary>
+    );
+  }
 
   return (
     <div className="space-y-6">

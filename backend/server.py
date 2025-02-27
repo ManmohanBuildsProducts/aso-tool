@@ -190,13 +190,47 @@ async def predict_rankings(app_id: str, keyword: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/ai/competitors/impact/{app_id}")
-async def analyze_competitor_impact(
-    app_id: str,
-    competitor_ids: List[str] = Query(...)
-):
+async def analyze_competitor_impact(app_id: str):
     """Analyze competitor impact on rankings"""
     try:
-        return await ranking_analyzer.analyze_competitor_impact(app_id, competitor_ids)
+        # Get app data
+        app = await db.apps.find_one({"package_name": app_id})
+        if not app:
+            raise HTTPException(status_code=404, detail="App not found")
+
+        # Get competitors
+        competitors = await db.apps.find({"is_competitor": True}).to_list(length=10)
+        if not competitors:
+            return {
+                "message": "No competitors found",
+                "impact": [],
+                "recommendations": []
+            }
+
+        # Analyze impact
+        analysis = await deepseek_analyzer.analyze_competitor_metadata(
+            app.get("metadata", {}),
+            [comp.get("metadata", {}) for comp in competitors]
+        )
+
+        # Get rankings data
+        rankings = await db.rankings.find({
+            "app_id": {"$in": [app_id] + [c["package_name"] for c in competitors]}
+        }).sort("date", -1).limit(100).to_list(length=100)
+
+        # Combine analysis
+        return {
+            "metadata_analysis": analysis,
+            "rankings_data": rankings,
+            "competitors": [
+                {
+                    "package_name": comp["package_name"],
+                    "name": comp.get("name", "Unknown"),
+                    "metrics": comp.get("metadata", {})
+                }
+                for comp in competitors
+            ]
+        }
     except Exception as e:
         logger.error(f"Error analyzing competitor impact: {e}")
         raise HTTPException(status_code=500, detail=str(e))

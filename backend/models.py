@@ -2,68 +2,39 @@ from pydantic import BaseModel, Field
 from typing import List, Optional, Dict
 from datetime import datetime
 
-class AppMetadata(BaseModel):
-    title: str
-    short_description: str
-    full_description: str
-    icon_url: Optional[str]
-    screenshots: List[str] = []
-    category: str
-    developer: str
-    installs_range: str
-    rating: float
-    reviews_count: int
-    size: str
-    last_updated: datetime
-    content_rating: str
-    price: str
-    supported_languages: List[str] = []
-
-class KeywordMetrics(BaseModel):
+class KeywordSuggestion(BaseModel):
     keyword: str
-    search_volume_score: Optional[float] = None  # 0-100 scale
-    difficulty_score: Optional[float] = None     # 0-100 scale
-    relevancy_score: Optional[float] = None      # 0-100 scale
-    trending_score: Optional[float] = None       # -100 to 100 scale
-    category_relevance: List[str] = []          # Relevant categories
-    search_suggestions: List[str] = []          # Related search terms
-    last_updated: datetime = Field(default_factory=datetime.utcnow)
+    relevance: float = Field(ge=0, le=1)
+    competition: str = Field(regex="^(high|medium|low)$")
+    priority: str = Field(regex="^(high|medium|low)$")
 
-class RankingSnapshot(BaseModel):
-    app_id: str
-    keyword_id: str
-    rank: int
-    date: datetime = Field(default_factory=datetime.utcnow)
-    search_page_data: Dict = Field(default_factory=dict)  # Stores visibility metrics
-    category_rank: Optional[int] = None
-    similar_apps: List[str] = []  # Package names of "Similar apps" section
+class LongTailKeyword(BaseModel):
+    keyword: str
+    search_intent: str = Field(regex="^(informational|transactional|navigational)$")
+    opportunity: str = Field(regex="^(high|medium|low)$")
+
+class RelatedTerm(BaseModel):
+    term: str
+    relevance: float = Field(ge=0, le=1)
+    category: str
+
+class KeywordAnalysis(BaseModel):
+    variations: List[KeywordSuggestion]
+    long_tail: List[LongTailKeyword]
+    related_terms: List[RelatedTerm]
+    recommendations: List[str]
+
+class CompetitorMetrics(BaseModel):
+    package_name: str
+    name: str = "Unknown"
+    metrics: Dict = Field(default_factory=dict)
 
 class CompetitorAnalysis(BaseModel):
-    app_id: str
-    competitor_id: str
-    date: datetime = Field(default_factory=datetime.utcnow)
-    shared_keywords: List[str] = []
-    keyword_opportunities: List[str] = []  # Keywords where competitor ranks better
-    metadata_diff: Dict = Field(default_factory=dict)  # Differences in titles, descriptions
-    visibility_score: float = 0.0  # Overall visibility comparison
+    metadata_analysis: Dict
+    rankings_data: List[Dict] = Field(default_factory=list)
+    competitors: List[CompetitorMetrics]
 
-class ASORecommendation(BaseModel):
-    app_id: str
-    date: datetime = Field(default_factory=datetime.utcnow)
-    category: str  # e.g., "title", "description", "keywords", "screenshots"
-    current_value: str
-    suggested_value: str
-    impact_score: float  # 0-100 scale
-    reasoning: str
-    implementation_difficulty: str  # "easy", "medium", "hard"
-
-class KeywordOpportunity(BaseModel):
-    keyword: str
-    search_volume_score: float
-    difficulty_score: float
-    relevancy_score: float
-    current_rank: Optional[int]
-    estimated_traffic: float
-    top_ranking_apps: List[str]
-    recommendation: str
-    priority: str  # "high", "medium", "low"
+class ErrorResponse(BaseModel):
+    detail: str
+    code: str = "INTERNAL_ERROR"
+    timestamp: datetime = Field(default_factory=datetime.utcnow)

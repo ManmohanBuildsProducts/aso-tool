@@ -121,20 +121,29 @@ Focus on B2B wholesale domain best practices. Format your response in clear sect
     async def generate_keyword_suggestions(self, base_keyword: str, industry: str = "B2B wholesale") -> Dict:
         """Generate keyword suggestions using AI analysis"""
         try:
-            prompt = f"""As an ASO expert for {industry} apps, analyze this keyword and provide detailed suggestions:
+            prompt = f"""As an ASO expert for {industry} apps, analyze this keyword and provide detailed suggestions in this exact JSON format:
+{{
+    "variations": [
+        {{"keyword": "example variation", "relevance": 0.9, "competition": "high", "priority": "high"}},
+        // more variations...
+    ],
+    "long_tail": [
+        {{"keyword": "example long tail", "search_intent": "transactional", "opportunity": "high"}},
+        // more long tail...
+    ],
+    "related_terms": [
+        {{"term": "example term", "relevance": 0.8, "category": "business"}},
+        // more terms...
+    ],
+    "recommendations": [
+        "recommendation 1",
+        "recommendation 2"
+    ]
+}}
 
 Base Keyword: {base_keyword}
 
-Provide a detailed analysis with these sections:
-1. Keyword Relevance
-2. Search Intent
-3. Competition Analysis
-4. SEO Strategy
-5. Related Keywords
-6. Industry-specific Variations
-7. Priority Recommendations
-
-Format your response in clear sections with ### headers."""
+Focus on B2B and wholesale industry patterns. Ensure the response is valid JSON."""
 
             messages = [
                 {"role": "system", "content": "You are an expert ASO keyword analyst for B2B applications."},

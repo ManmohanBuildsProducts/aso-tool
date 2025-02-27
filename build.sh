@@ -6,7 +6,7 @@ pip install -r requirements.txt
 
 echo "Setting up Node.js..."
 # Download and extract Node.js binary
-curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+curl -fsSL https://deb.nodesource.com/setup_20.0.0 | bash -
 apt-get install -y nodejs
 npm install -g npm@latest
 

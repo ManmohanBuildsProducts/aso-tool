@@ -1,0 +1,10 @@
+MANIFEST.in
+README.md
+setup.py
+aso_tool/__init__.py
+aso_tool/main.py
+aso_tool.egg-info/PKG-INFO
+aso_tool.egg-info/SOURCES.txt
+aso_tool.egg-info/dependency_links.txt
+aso_tool.egg-info/requires.txt
+aso_tool.egg-info/top_level.txt

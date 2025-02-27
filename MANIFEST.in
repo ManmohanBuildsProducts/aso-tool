@@ -1,0 +1,2 @@
+recursive-include aso_tool/static *
+recursive-include aso_tool/templates *

@@ -66,10 +66,12 @@ class UserBase(BaseModel):
 # API endpoints
 from .aso_analyzer import ASOAnalyzer
 from .scheduler import RankingScheduler
+from .keyword_analyzer import KeywordAnalyzer
 
 # Initialize components
 aso_analyzer = ASOAnalyzer(db)
 ranking_scheduler = RankingScheduler(db)
+keyword_analyzer = KeywordAnalyzer(db)
 
 @app.on_event("startup")
 async def startup_event():

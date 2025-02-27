@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 import asyncio
 from collections import Counter
 import json
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -60,19 +61,43 @@ class ASOAnalyzer:
         Analyze differences in metadata between app and competitor
         """
         try:
-            differences = {}
+            analysis = {
+                "title_analysis": {},
+                "description_analysis": {},
+                "feature_comparison": {},
+                "screenshot_analysis": {},
+                "overall_score": 0,
+                "recommendations": []
+            }
             
-            # Analyze title
-            app_title_words = set(app_metadata.get('title', '').lower().split())
-            comp_title_words = set(competitor_metadata.get('title', '').lower().split())
-            unique_comp_words = comp_title_words - app_title_words
-            if unique_comp_words:
-                differences['title'] = {
-                    'missing_keywords': list(unique_comp_words),
-                    'recommendation': 'Consider adding these keywords to title'
+            # Title Analysis
+            app_title = app_metadata.get('title', '').lower()
+            comp_title = competitor_metadata.get('title', '').lower()
+            
+            app_title_words = set(app_title.split())
+            comp_title_words = set(comp_title.split())
+            
+            # Analyze title components
+            analysis["title_analysis"] = {
+                "length_comparison": {
+                    "app_length": len(app_title),
+                    "competitor_length": len(comp_title),
+                    "optimal_range": "30-50 characters",
+                    "recommendation": "Optimize title length" if len(app_title) < 30 else "Good length"
+                },
+                "keyword_comparison": {
+                    "unique_competitor_keywords": list(comp_title_words - app_title_words),
+                    "unique_app_keywords": list(app_title_words - comp_title_words),
+                    "shared_keywords": list(app_title_words & comp_title_words)
+                },
+                "structure_analysis": {
+                    "has_brand": bool(re.search(r'^[A-Za-z0-9]+ [-|:]', app_title)),
+                    "has_keywords": bool(re.search(r'b2b|wholesale|business', app_title)),
+                    "has_value_prop": bool(re.search(r'best|top|leading|#1', app_title))
                 }
+            }
             
-            # Analyze description
+            # Description Analysis
             app_desc = app_metadata.get('full_description', '').lower()
             comp_desc = competitor_metadata.get('full_description', '').lower()
             
@@ -85,13 +110,16 @@ class ASOAnalyzer:
             comp_phrases = set(extract_phrases(comp_desc))
             unique_phrases = comp_phrases - app_phrases
             
-            if unique_phrases:
-                differences['description'] = {
-                    'missing_phrases': list(unique_phrases)[:5],  # Top 5 phrases
-                    'recommendation': 'Consider incorporating these phrases'
-                }
+            analysis["description_analysis"] = {
+                "length_comparison": {
+                    "app_length": len(app_desc),
+                    "competitor_length": len(comp_desc)
+                },
+                "unique_phrases": list(unique_phrases)[:5],  # Top 5 phrases
+                "recommendation": "Consider incorporating competitor phrases" if unique_phrases else "Description content is competitive"
+            }
             
-            return differences
+            return analysis
         except Exception as e:
             logger.error(f"Error analyzing competitor metadata: {e}")
             return {"error": str(e)}

@@ -3,7 +3,42 @@ import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 import { HiTrendingUp, HiTrendingDown } from 'react-icons/hi';
 
-const HealthScore = ({ score, metrics }) => {
+const calculateMetricScore = (...sections) => {
+  // Count recommendations and issues
+  let recommendations = 0;
+  let issues = 0;
+  
+  sections.forEach(section => {
+    if (!section) return;
+    
+    // Count positive indicators
+    recommendations += (section.match(/recommend|suggest|consider|improve|optimize/gi) || []).length;
+    
+    // Count negative indicators
+    issues += (section.match(/lack|miss|need|should|could|better|problem/gi) || []).length;
+  });
+  
+  // Calculate score based on ratio of recommendations to issues
+  const total = recommendations + issues;
+  if (total === 0) return 50;  // Default score
+  
+  const score = Math.round((recommendations / total) * 100);
+  return Math.min(Math.max(score, 0), 100);  // Clamp between 0-100
+};
+
+const HealthScore = ({ data }) => {
+  // Extract metrics from sections
+  const metrics = {
+    keyword_optimization: calculateMetricScore(data?.sections?.['keyword opportunities']),
+    metadata_quality: calculateMetricScore(data?.sections?.['title optimization'], data?.sections?.['description analysis']),
+    competitive_position: calculateMetricScore(data?.sections?.['competitive advantages']),
+    feature_coverage: calculateMetricScore(data?.sections?.['feature recommendations'])
+  };
+  
+  // Calculate overall score
+  const score = Math.round(
+    Object.values(metrics).reduce((a, b) => a + b, 0) / Object.keys(metrics).length
+  );
   const getScoreColor = (value) => {
     if (value >= 80) return '#22c55e';
     if (value >= 60) return '#eab308';

@@ -11,7 +11,23 @@ import ErrorState from './common/ErrorState';
 const Dashboard = ({ appId }) => {
   const { data, isLoading, error } = useQuery(
     ['appAnalysis', appId],
-    () => fetchAppAnalysis(appId)
+    () => fetchAppAnalysis(appId),
+    {
+      select: (data) => {
+        // Transform markdown sections into structured data
+        const sections = {};
+        if (data?.analysis) {
+          Object.entries(data.analysis).forEach(([key, value]) => {
+            const sectionName = key.replace(/^\d+\.\s+/, '').toLowerCase();
+            sections[sectionName] = value.split('---')[0].trim();
+          });
+        }
+        return {
+          sections,
+          format: data?.format
+        };
+      }
+    }
   );
 
   if (isLoading) return <LoadingState />;

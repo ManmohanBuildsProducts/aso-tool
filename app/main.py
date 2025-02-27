@@ -39,4 +39,8 @@ async def health_check():
     return {"status": "healthy"}
 
 # Serve static files
-app.mount("/", StaticFiles(directory="frontend/dist", html=True), name="static")
+app.mount("/static", StaticFiles(directory="frontend/dist/assets"), name="static")
+
+@app.get("/{full_path:path}")
+async def serve_spa(full_path: str):
+    return FileResponse("frontend/dist/index.html")

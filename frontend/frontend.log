@@ -13,3 +13,8 @@
 
   ➜  Local:   http://localhost:3000/
   ➜  Network: use --host to expose
+11:43:08 AM [vite] vite.config.js changed, restarting server...
+11:43:08 AM [vite] server restarted.
+
+  ➜  Local:   http://localhost:3000/static/
+  ➜  Network: use --host to expose

@@ -20,10 +20,7 @@ services:
 
     startCommand: |
       cd /opt/render/project/src && \
-      gunicorn --workers 4 --worker-class uvicorn.workers.UvicornWorker \
-      --bind 0.0.0.0:$PORT --log-level info \
-      --timeout 120 --preload \
-      'src.app.main:app'
+      gunicorn -c gunicorn_config.py 'src.app.main:app'
 
     envVars:
       - key: PYTHONPATH

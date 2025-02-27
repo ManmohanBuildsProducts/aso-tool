@@ -31,18 +31,37 @@ app.add_middleware(
 # Health check instance
 health_checker = HealthCheck()
 
-# Mount static files
+# Configure static files and templates
 import os
+import logging
+from pathlib import Path
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+
+# Setup logging
+logging.basicConfig(
+    level=os.getenv("LOG_LEVEL", "INFO").upper(),
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 # Get static directory from environment variable or use default
-static_dir = os.getenv("STATIC_DIR", os.path.join(os.path.dirname(__file__), "static"))
+static_dir = os.getenv(
+    "STATIC_DIR",
+    str(Path(__file__).parent.parent.parent / "static")
+)
 
 # Create static directory if it doesn't exist
 os.makedirs(static_dir, exist_ok=True)
+logger.info(f"Using static directory: {static_dir}")
 
-# Mount static files
-app.mount("/static", StaticFiles(directory=static_dir), name="static")
+try:
+    # Mount static files
+    app.mount("/static", StaticFiles(directory=static_dir), name="static")
+    logger.info("Successfully mounted static files")
+except Exception as e:
+    logger.error(f"Failed to mount static files: {str(e)}")
+    raise
 
 # Include routers
 app.include_router(app_analysis.router, prefix="/api", tags=["App Analysis"])
@@ -61,7 +80,11 @@ async def health_check():
 @app.get("/")
 async def serve_spa():
     """Serve the Single Page Application"""
-    return FileResponse(os.path.join(static_dir, "index.html"))
+    index_path = os.path.join(static_dir, "index.html")
+    if not os.path.exists(index_path):
+        logger.warning(f"Index file not found at {index_path}")
+        return {"message": "Welcome to ASO Tool API"}
+    return FileResponse(index_path)
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends, status
+from fastapi import FastAPI, HTTPException, Depends, status, Body
 from fastapi.security import OAuth2PasswordBearer
 from fastapi.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -164,6 +164,71 @@ async def get_keyword_categories():
         }
     except Exception as e:
         logger.error(f"Error getting keyword categories: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/ai/analyze/{app_id}")
+async def ai_analyze_app(app_id: str):
+    """Get AI-powered app analysis"""
+    try:
+        # Get app data
+        app = await db.apps.find_one({"_id": app_id})
+        if not app:
+            raise HTTPException(status_code=404, detail="App not found")
+            
+        # Get competitors
+        competitors = await db.apps.find({"is_competitor": True}).to_list(length=100)
+        
+        # Get AI analysis
+        analysis = await deepseek_analyzer.analyze_app_metadata(
+            app.get("metadata", {}),
+            [comp.get("metadata", {}) for comp in competitors]
+        )
+        
+        return analysis
+    except Exception as e:
+        logger.error(f"Error in AI analysis: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/ai/keywords/{keyword}")
+async def ai_analyze_keyword(keyword: str):
+    """Get AI-powered keyword analysis"""
+    try:
+        analysis = await deepseek_analyzer.generate_keyword_suggestions(keyword)
+        return analysis
+    except Exception as e:
+        logger.error(f"Error in keyword analysis: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/ai/trends")
+async def ai_analyze_trends():
+    """Get AI-powered market trend analysis"""
+    try:
+        analysis = await deepseek_analyzer.analyze_market_trends()
+        return analysis
+    except Exception as e:
+        logger.error(f"Error in trend analysis: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/ai/optimize/description/{app_id}")
+async def ai_optimize_description(
+    app_id: str,
+    keywords: List[str]
+):
+    """Optimize app description using AI"""
+    try:
+        app = await db.apps.find_one({"_id": app_id})
+        if not app:
+            raise HTTPException(status_code=404, detail="App not found")
+            
+        current_description = app.get("metadata", {}).get("full_description", "")
+        optimization = await deepseek_analyzer.optimize_description(
+            current_description,
+            keywords
+        )
+        
+        return optimization
+    except Exception as e:
+        logger.error(f"Error optimizing description: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/analyze/competitors/{app_id}")

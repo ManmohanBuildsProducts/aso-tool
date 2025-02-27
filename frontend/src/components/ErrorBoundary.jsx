@@ -1,5 +1,5 @@
 import React from 'react';
-import ErrorState from './common/ErrorState';
+import { HiExclamationCircle } from 'react-icons/hi';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -17,11 +17,29 @@ class ErrorBoundary extends React.Component {
 
   render() {
     if (this.state.hasError) {
-      return <ErrorState error={this.state.error} />;
+      return (
+        <div className="bg-red-50 rounded-lg p-6">
+          <div className="flex items-center mb-4">
+            <HiExclamationCircle className="w-6 h-6 text-red-500 mr-2" />
+            <h3 className="text-lg font-medium text-red-800">
+              Something went wrong
+            </h3>
+          </div>
+          <div className="text-sm text-red-700">
+            {this.state.error?.message || 'An unexpected error occurred'}
+          </div>
+          {this.props.showReset && (
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-4 px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200"
+            >
+              Reload Page
+            </button>
+          )}
+        </div>
+      );
     }
 
     return this.props.children;
   }
 }
-
-export default ErrorBoundary;

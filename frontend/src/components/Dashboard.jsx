@@ -1,12 +1,12 @@
 import React from 'react';
+import { useQuery } from 'react-query';
+import { fetchAppAnalysis } from '../services/api';
 import HealthScore from './widgets/HealthScore';
 import ActionCenter from './widgets/ActionCenter';
 import MarketPosition from './widgets/MarketPosition';
 import KeywordAnalysis from './widgets/KeywordAnalysis';
-import { useQuery } from 'react-query';
-import { fetchAppAnalysis } from '../services/api';
-import LoadingState from './common/LoadingState';
-import ErrorState from './common/ErrorState';
+import LoadingState from './LoadingState';
+import ErrorBoundary from './ErrorBoundary';
 
 const Dashboard = ({ appId }) => {
   const { data, isLoading, error } = useQuery(
@@ -26,12 +26,20 @@ const Dashboard = ({ appId }) => {
           sections,
           format: data?.format
         };
-      }
+      },
+      retry: 2,
+      staleTime: 5 * 60 * 1000  // 5 minutes
     }
   );
 
-  if (isLoading) return <LoadingState />;
-  if (error) return <ErrorState error={error} />;
+  if (isLoading) return <LoadingState message="Analyzing app data..." />;
+  if (error) {
+    return (
+      <ErrorBoundary showReset>
+        <div>Error loading dashboard data</div>
+      </ErrorBoundary>
+    );
+  }
 
   // Transform sections into actions
   const actions = React.useMemo(() => {
@@ -77,24 +85,32 @@ const Dashboard = ({ appId }) => {
       {/* Top Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <HealthScore data={data} />
+          <ErrorBoundary>
+            <HealthScore data={data} />
+          </ErrorBoundary>
         </div>
         <div>
-          <MarketPosition data={data?.sections?.['competitive advantages']} />
+          <ErrorBoundary>
+            <MarketPosition data={data?.sections?.['competitive advantages']} />
+          </ErrorBoundary>
         </div>
       </div>
 
       {/* Middle Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ActionCenter actions={actions} appId={appId} />
-        <KeywordAnalysis 
-          keywords={keywords} 
-          appId={appId}
-          insights={data?.sections?.['keyword opportunities']}
-        />
+        <ErrorBoundary>
+          <ActionCenter actions={actions} appId={appId} />
+        </ErrorBoundary>
+        <ErrorBoundary>
+          <KeywordAnalysis 
+            keywords={keywords} 
+            appId={appId}
+            insights={data?.sections?.['keyword opportunities']}
+          />
+        </ErrorBoundary>
       </div>
     </div>
   );
-}
+};
 
 export default Dashboard;

@@ -45,7 +45,7 @@ const MarketPosition = ({ data }) => {
           data={[
             {
               id: 'competitors',
-              data: position.data
+              data: positionData
             }
           ]}
           margin={{ top: 20, right: 20, bottom: 70, left: 70 }}
@@ -86,7 +86,7 @@ const MarketPosition = ({ data }) => {
           Key Insights
         </h3>
         <ul className="space-y-2 text-sm text-blue-700">
-          {position.insights?.map((insight, index) => (
+          {insights.map((insight, index) => (
             <li key={index} className="flex items-start gap-2">
               <span>•</span>
               <span>{insight}</span>

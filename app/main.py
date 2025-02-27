@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from routers import (
     app_analysis, keyword_analysis, competitor_analysis,
     metadata_analysis, review_analysis, text_analysis,
@@ -36,7 +36,13 @@ app.include_router(metadata_tracking.router, prefix="/api/track", tags=["Metadat
 # Health check endpoint
 @app.get("/api/health")
 async def health_check():
-    return {"status": "healthy"}
+    return JSONResponse(
+        status_code=200,
+        content={
+            "status": "healthy",
+            "message": "Service is running"
+        }
+    )
 
 # Serve static files
 app.mount("/assets", StaticFiles(directory="../frontend/dist/assets"), name="static")

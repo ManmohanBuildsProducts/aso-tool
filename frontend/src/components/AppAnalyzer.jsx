@@ -19,6 +19,7 @@ import {
   Chip,
   Tooltip,
   CircularProgress,
+  LinearProgress,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -102,8 +103,28 @@ const AppAnalyzer = () => {
     setCompetitors(competitors.map(comp => ({ ...comp, loading: true })));
 
     try {
-      // Call your backend API here
-      const response = await fetch('/api/analyze/competitors/compare', {
+      // Get main app analysis
+      const appResponse = await fetch(`/api/analyze/app/${mainApp.appId}`);
+      const appData = await appResponse.json();
+
+      // Get competitor analysis if there are competitors
+      let competitorData = null;
+      if (competitors.length > 0) {
+        const competitorResponse = await fetch('/api/analyze/competitors/compare', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            app_id: mainApp.appId,
+            competitor_ids: competitors.map(comp => comp.appId),
+          }),
+        });
+        competitorData = await competitorResponse.json();
+      }
+
+      // Get keyword analysis
+      const keywordResponse = await fetch('/api/analyze/keywords/discover', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -113,11 +134,16 @@ const AppAnalyzer = () => {
           competitor_ids: competitors.map(comp => comp.appId),
         }),
       });
+      const keywordData = await keywordResponse.json();
 
-      const data = await response.json();
-      setAnalysisResults(data);
+      setAnalysisResults({
+        appAnalysis: appData,
+        competitorAnalysis: competitorData,
+        keywordAnalysis: keywordData
+      });
     } catch (error) {
       console.error('Analysis failed:', error);
+      alert('Analysis failed. Please try again.');
     } finally {
       setMainApp({ ...mainApp, loading: false });
       setCompetitors(competitors.map(comp => ({ ...comp, loading: false })));
@@ -204,11 +230,121 @@ const AppAnalyzer = () => {
         </Tabs>
 
         <Box mt={2}>
-          {activeTab === 0 && renderOverviewTab()}
-          {activeTab === 1 && renderKeywordsTab()}
-          {activeTab === 2 && renderReviewsTab()}
-          {activeTab === 3 && renderMetadataTab()}
-          {activeTab === 4 && renderPerformanceTab()}
+          {activeTab === 0 && (
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <Paper elevation={2} sx={{ p: 2 }}>
+                  <Typography variant="h6" gutterBottom>App Overview</Typography>
+                  {analysisResults.appAnalysis && (
+                    <>
+                      <Typography><strong>Title:</strong> {analysisResults.appAnalysis.data.title}</Typography>
+                      <Typography><strong>Installs:</strong> {analysisResults.appAnalysis.data.installs}</Typography>
+                      <Typography><strong>Rating:</strong> {analysisResults.appAnalysis.data.score || 'N/A'}</Typography>
+                      <Typography><strong>Reviews:</strong> {analysisResults.appAnalysis.data.reviews || 'N/A'}</Typography>
+                    </>
+                  )}
+                </Paper>
+              </Grid>
+              {analysisResults.competitorAnalysis && (
+                <Grid item xs={12}>
+                  <Paper elevation={2} sx={{ p: 2 }}>
+                    <Typography variant="h6" gutterBottom>Competitor Analysis</Typography>
+                    {analysisResults.competitorAnalysis.comparison.competitors.map((comp, index) => (
+                      <Box key={index} mb={2}>
+                        <Typography><strong>{comp.app_id}</strong></Typography>
+                        <Typography>Installs: {comp.details.installs}</Typography>
+                        <Typography>Rating: {comp.details.score || 'N/A'}</Typography>
+                      </Box>
+                    ))}
+                  </Paper>
+                </Grid>
+              )}
+            </Grid>
+          )}
+          {activeTab === 1 && (
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <Paper elevation={2} sx={{ p: 2 }}>
+                  <Typography variant="h6" gutterBottom>Keyword Analysis</Typography>
+                  {analysisResults.keywordAnalysis && (
+                    <Box>
+                      <Typography variant="subtitle1" gutterBottom>Top Keywords:</Typography>
+                      {Object.entries(analysisResults.keywordAnalysis.analysis.top_keywords || {}).map(([keyword, score]) => (
+                        <Chip 
+                          key={keyword}
+                          label={`${keyword}: ${(score * 100).toFixed(1)}%`}
+                          sx={{ m: 0.5 }}
+                        />
+                      ))}
+                    </Box>
+                  )}
+                </Paper>
+              </Grid>
+            </Grid>
+          )}
+          {activeTab === 2 && (
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <Paper elevation={2} sx={{ p: 2 }}>
+                  <Typography variant="h6" gutterBottom>Review Analysis</Typography>
+                  {analysisResults.appAnalysis && (
+                    <Box>
+                      <Typography><strong>Total Reviews:</strong> {analysisResults.appAnalysis.data.reviews || 'N/A'}</Typography>
+                      <Typography><strong>Rating Distribution:</strong></Typography>
+                      {analysisResults.appAnalysis.data.histogram && (
+                        <Box sx={{ mt: 1 }}>
+                          {analysisResults.appAnalysis.data.histogram.map((count, index) => (
+                            <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                              <Typography sx={{ minWidth: 70 }}>{5 - index} stars:</Typography>
+                              <LinearProgress 
+                                variant="determinate" 
+                                value={(count / Math.max(...analysisResults.appAnalysis.data.histogram)) * 100}
+                                sx={{ flexGrow: 1, ml: 1 }}
+                              />
+                              <Typography sx={{ ml: 1 }}>{count}</Typography>
+                            </Box>
+                          ))}
+                        </Box>
+                      )}
+                    </Box>
+                  )}
+                </Paper>
+              </Grid>
+            </Grid>
+          )}
+          {activeTab === 3 && (
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <Paper elevation={2} sx={{ p: 2 }}>
+                  <Typography variant="h6" gutterBottom>Metadata Analysis</Typography>
+                  {analysisResults.appAnalysis && (
+                    <Box>
+                      <Typography><strong>App Size:</strong> {analysisResults.appAnalysis.data.size || 'N/A'}</Typography>
+                      <Typography><strong>Last Updated:</strong> {new Date(analysisResults.appAnalysis.data.updated * 1000).toLocaleDateString()}</Typography>
+                      <Typography><strong>Version:</strong> {analysisResults.appAnalysis.data.version || 'N/A'}</Typography>
+                      <Typography><strong>Content Rating:</strong> {analysisResults.appAnalysis.data.contentRating}</Typography>
+                    </Box>
+                  )}
+                </Paper>
+              </Grid>
+            </Grid>
+          )}
+          {activeTab === 4 && (
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <Paper elevation={2} sx={{ p: 2 }}>
+                  <Typography variant="h6" gutterBottom>Performance Metrics</Typography>
+                  {analysisResults.appAnalysis && (
+                    <Box>
+                      <Typography><strong>Install Range:</strong> {analysisResults.appAnalysis.data.installs}</Typography>
+                      <Typography><strong>Rating:</strong> {analysisResults.appAnalysis.data.score || 'N/A'}</Typography>
+                      <Typography><strong>Total Reviews:</strong> {analysisResults.appAnalysis.data.reviews || 'N/A'}</Typography>
+                    </Box>
+                  )}
+                </Paper>
+              </Grid>
+            </Grid>
+          )}
         </Box>
       </Box>
     );

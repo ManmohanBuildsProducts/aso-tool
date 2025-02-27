@@ -3,7 +3,6 @@ from services.app_scraper import AppScraper
 from services.keyword_analyzer import KeywordAnalyzer
 import logging
 from datetime import datetime
-import asyncio
 
 logger = logging.getLogger(__name__)
 
@@ -24,36 +23,17 @@ class CompetitorAnalyzer:
             
             # Get competitor details with validation
             competitor_details = []
-            competitor_tasks = [
-                self._get_app_details_safely(comp_id)
-                for comp_id in competitor_ids
-            ]
-            
-            # Fetch competitor details concurrently
-            competitor_results = await asyncio.gather(
-                *competitor_tasks,
-                return_exceptions=True
-            )
-            
-            for comp_id, result in zip(competitor_ids, competitor_results):
-                if isinstance(result, Exception):
-                    logger.warning(f"Error fetching competitor {comp_id}: {str(result)}")
+            for comp_id in competitor_ids:
+                try:
+                    comp_details = await self._get_app_details_safely(comp_id)
+                    if comp_details:
+                        competitor_details.append(comp_details)
+                except Exception as e:
+                    logger.warning(f"Error fetching competitor {comp_id}: {str(e)}")
                     continue
-                if result:
-                    competitor_details.append(result)
             
             # Perform analysis even if some competitors failed
             metrics_comparison = self._compare_metrics(main_app, competitor_details)
-            
-            # Get keyword analysis
-            try:
-                keyword_analysis = await self.keyword_analyzer.compare_keywords(
-                    app_id,
-                    [comp["appId"] for comp in competitor_details]
-                )
-            except Exception as e:
-                logger.error(f"Error in keyword analysis: {str(e)}")
-                keyword_analysis = {"keyword_comparison": {}}
             
             return {
                 "status": "success",
@@ -73,7 +53,6 @@ class CompetitorAnalyzer:
                 ],
                 "market_analysis": self._analyze_market_position(main_app, competitor_details),
                 "metrics_comparison": metrics_comparison,
-                "keyword_analysis": keyword_analysis.get("keyword_comparison", {}),
                 "analyzed_at": datetime.now().isoformat()
             }
             
@@ -90,7 +69,6 @@ class CompetitorAnalyzer:
             "competitors": [],
             "market_analysis": self._get_default_market_analysis(),
             "metrics_comparison": self._get_default_metrics(),
-            "keyword_analysis": {},
             "analyzed_at": datetime.now().isoformat()
         }
 
@@ -100,7 +78,19 @@ class CompetitorAnalyzer:
         """
         try:
             details = await self.app_scraper.get_app_details(app_id)
-            return details if details else None
+            if not details:
+                return None
+
+            # Ensure critical fields have default values
+            return {
+                **details,
+                "score": float(details.get("score", 0) or 0),
+                "ratings": int(details.get("ratings", 0) or 0),
+                "reviews": int(details.get("reviews", 0) or 0),
+                "minInstalls": int(details.get("minInstalls", 0) or 0),
+                "maxInstalls": int(details.get("maxInstalls", 0) or details.get("minInstalls", 0) or 0),
+                "analyzed_at": datetime.now().isoformat()
+            }
         except Exception as e:
             logger.error(f"Error fetching app details for {app_id}: {str(e)}")
             return None
@@ -108,29 +98,29 @@ class CompetitorAnalyzer:
     def _calculate_app_metrics(self, app_data: Dict[str, Any]) -> Dict[str, Any]:
         """Calculate key metrics for an app"""
         try:
-            reviews = self._safe_int(app_data.get('reviews')) or 0
-            installs = self._safe_int(app_data.get('minInstalls')) or 0
-            ratings = self._safe_int(app_data.get('ratings')) or 0
-            score = self._safe_float(app_data.get('score')) or 0.0
+            reviews = int(app_data.get("reviews", 0) or 0)
+            installs = int(app_data.get("minInstalls", 0) or 0)
+            ratings = int(app_data.get("ratings", 0) or 0)
+            score = float(app_data.get("score", 0) or 0)
             
             metrics = {
                 "rating_score": score,
                 "total_ratings": ratings,
                 "total_reviews": reviews,
                 "total_installs": installs,
-                "review_quality": app_data.get('reviewQualityScore', 0),
-                "engagement_score": app_data.get('engagementScore', 0),
+                "review_quality": app_data.get("reviewQualityScore", 0),
+                "engagement_score": app_data.get("engagementScore", 0),
                 "estimated_revenue": self._estimate_revenue(app_data),
                 "market_presence": self._calculate_market_presence(app_data),
                 "growth_metrics": {
-                    "daily_installs": app_data.get('estimatedDailyInstalls', 0),
-                    "monthly_installs": app_data.get('estimatedMonthlyInstalls', 0),
+                    "daily_installs": app_data.get("estimatedDailyInstalls", 0),
+                    "monthly_installs": app_data.get("estimatedMonthlyInstalls", 0),
                 }
             }
             
             # Add review sentiment if available
-            if 'recent_reviews' in app_data:
-                metrics['review_sentiment'] = app_data['recent_reviews'].get('sentiment_distribution', {})
+            if "recent_reviews" in app_data:
+                metrics["review_sentiment"] = app_data["recent_reviews"].get("sentiment_distribution", {})
             
             return metrics
             
@@ -234,10 +224,10 @@ class CompetitorAnalyzer:
             }
             
             # Calculate normalized scores
-            install_score = min(app_data.get('minInstalls', 0) / 1000000, 1) * 100
-            review_score = min(app_data.get('reviews', 0) / 100000, 1) * 100
-            rating_score = (app_data.get('score', 0) / 5) * 100
-            engagement_score = app_data.get('engagementScore', 0)
+            install_score = min(int(app_data.get('minInstalls', 0) or 0) / 1000000, 1) * 100
+            review_score = min(int(app_data.get('reviews', 0) or 0) / 100000, 1) * 100
+            rating_score = (float(app_data.get('score', 0) or 0) / 5) * 100
+            engagement_score = float(app_data.get('engagementScore', 0) or 0)
             
             # Calculate weighted average
             market_presence = (
@@ -257,9 +247,9 @@ class CompetitorAnalyzer:
         """Estimate app revenue"""
         try:
             # Basic revenue estimation
-            price = app_data.get('price', 0)
-            installs = app_data.get('minInstalls', 0)
-            has_iap = app_data.get('offersIAP', False)
+            price = float(app_data.get('price', 0) or 0)
+            installs = int(app_data.get('minInstalls', 0) or 0)
+            has_iap = bool(app_data.get('offersIAP', False))
             
             if price > 0:
                 base_revenue = price * installs
@@ -273,7 +263,7 @@ class CompetitorAnalyzer:
                 iap_revenue = (installs * 0.05) * 5
             
             # Estimate ad revenue
-            ad_supported = app_data.get('adSupported', False)
+            ad_supported = bool(app_data.get('adSupported', False))
             ad_revenue = 0
             if ad_supported:
                 # Assume $0.01 per user per month
@@ -507,19 +497,3 @@ class CompetitorAnalyzer:
                 "opportunities": []
             }
         }
-
-    @staticmethod
-    def _safe_float(value: Any) -> float:
-        """Safely convert value to float"""
-        try:
-            return float(value) if value is not None else 0.0
-        except (ValueError, TypeError):
-            return 0.0
-
-    @staticmethod
-    def _safe_int(value: Any) -> int:
-        """Safely convert value to integer"""
-        try:
-            return int(value) if value is not None else 0
-        except (ValueError, TypeError):
-            return 0

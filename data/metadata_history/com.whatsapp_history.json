@@ -1,0 +1,812 @@
+{
+  "metadata": [
+    {
+      "timestamp": "2025-02-27T09:02:54.588330",
+      "record_date": "2025-02-27",
+      "title": "WhatsApp Messenger",
+      "description": "WhatsApp from Meta is a FREE messaging and video calling app. It\u2019s used by over 2B people in more than 180 countries. It\u2019s simple, reliable, and private, so you can easily keep in touch with your friends and family. WhatsApp works across mobile and desktop even on slow connections, with no subscription fees*.\r\n\r\nPrivate messaging across the world\r\n\r\nYour personal messages and calls to friends and family are end-to-end encrypted. No one outside of your chats, not even WhatsApp, can read or listen to them.\r\n\r\nSimple and secure connections, right away\r\n\r\nAll you need is your phone number, no user names or logins. You can quickly view your contacts who are on WhatsApp and start messaging.\r\n\r\nHigh quality voice and video calls\r\n\r\nMake secure video and voice calls with up to 8 people for free*. Your calls work across mobile devices using your phone\u2019s Internet service, even on slow connections.\r\n\r\nGroup chats to keep you in contact\r\n\r\nStay in touch with your friends and family. End-to-end encrypted group chats let you share messages, photos, videos and documents across mobile and desktop.\r\n\r\nStay connected in real time\r\n\r\nShare your location with only those in your individual or group chat, and stop sharing at any time. Or record a voice message to connect quickly.\r\n\r\nShare daily moments through Status\r\n\r\nStatus allows you to share text, photos, video and GIF updates that disappear after 24 hours. You can choose to share status posts with all your contacts or just selected ones.\r\n\r\nUse WhatsApp on your Wear OS watch to continue conversations, reply to messages, and take calls - all from your wrist. And, leverage tiles and complications to easily access your chats and send voice messages.\r\n\r\n\r\n*Data charges may apply. Contact your provider for details.\r\n\r\n---------------------------------------------------------\r\n\r\nIf you have any feedback or questions, please go to WhatsApp > Settings > Help > Contact Us\r\n\r\nTerms of Service: https://www.whatsapp.com/legal/terms-of-service\r\n \r\n Learn more about messaging privately: https://www.whatsapp.com/privacy\r\n \r\n Learn more about WhatsApp safety: https://www.whatsapp.com/security",
+      "version": null,
+      "score": 4.4661193,
+      "ratings": 204311275,
+      "reviews": 1984008,
+      "installs": "5,000,000,000+",
+      "released": "Oct 18, 2010",
+      "updated": 1740627035,
+      "text_analysis": {
+        "title": {
+          "basic_metrics": {
+            "character_count": 18,
+            "word_count": 2,
+            "sentence_count": 1,
+            "paragraph_count": 1
+          },
+          "detailed_metrics": {
+            "avg_word_length": 8.5,
+            "avg_sentence_length": 2.0,
+            "unique_words": 2,
+            "keyword_density": {
+              "whatsapp": 0.5,
+              "messenger": 0.5
+            }
+          },
+          "limits": {
+            "max_chars": 50,
+            "max_words": 10,
+            "recommended_chars": 30,
+            "recommended_words": 5
+          },
+          "optimization": {
+            "character_optimization": {
+              "ratio": 0.36,
+              "score": 0.8,
+              "status": "too_short"
+            },
+            "word_optimization": {
+              "ratio": 0.2,
+              "score": 0.4,
+              "status": "too_short"
+            },
+            "overall_score": 0.6000000000000001
+          },
+          "recommendations": [
+            "Add more content (recommended: 30 characters)",
+            "Add more words (recommended: 5 words)",
+            "Include more relevant keywords",
+            "Reduce keyword repetition for better readability"
+          ]
+        },
+        "description": {
+          "basic_metrics": {
+            "character_count": 2148,
+            "word_count": 327,
+            "sentence_count": 21,
+            "paragraph_count": 1
+          },
+          "detailed_metrics": {
+            "avg_word_length": 4.2798053527980535,
+            "avg_sentence_length": 19.571428571428573,
+            "unique_words": 179,
+            "keyword_density": {
+              "and": 0.046228710462287104,
+              "your": 0.0364963503649635,
+              "to": 0.0267639902676399,
+              "you": 0.019464720194647202,
+              "whatsapp": 0.0170316301703163,
+              "in": 0.014598540145985401,
+              "with": 0.014598540145985401
+            }
+          },
+          "limits": {
+            "max_chars": 4000,
+            "max_words": 800,
+            "recommended_chars": 2000,
+            "recommended_words": 400
+          },
+          "optimization": {
+            "character_optimization": {
+              "ratio": 0.537,
+              "score": 0.963,
+              "status": "good"
+            },
+            "word_optimization": {
+              "ratio": 0.40875,
+              "score": 0.90875,
+              "status": "good"
+            },
+            "overall_score": 0.935875
+          },
+          "recommendations": [
+            "Add more paragraphs to improve readability"
+          ]
+        }
+      }
+    },
+    {
+      "timestamp": "2025-02-27T09:02:54.943654",
+      "record_date": "2025-02-27",
+      "title": "WhatsApp Messenger",
+      "description": "WhatsApp from Meta is a FREE messaging and video calling app. It\u2019s used by over 2B people in more than 180 countries. It\u2019s simple, reliable, and private, so you can easily keep in touch with your friends and family. WhatsApp works across mobile and desktop even on slow connections, with no subscription fees*.\r\n\r\nPrivate messaging across the world\r\n\r\nYour personal messages and calls to friends and family are end-to-end encrypted. No one outside of your chats, not even WhatsApp, can read or listen to them.\r\n\r\nSimple and secure connections, right away\r\n\r\nAll you need is your phone number, no user names or logins. You can quickly view your contacts who are on WhatsApp and start messaging.\r\n\r\nHigh quality voice and video calls\r\n\r\nMake secure video and voice calls with up to 8 people for free*. Your calls work across mobile devices using your phone\u2019s Internet service, even on slow connections.\r\n\r\nGroup chats to keep you in contact\r\n\r\nStay in touch with your friends and family. End-to-end encrypted group chats let you share messages, photos, videos and documents across mobile and desktop.\r\n\r\nStay connected in real time\r\n\r\nShare your location with only those in your individual or group chat, and stop sharing at any time. Or record a voice message to connect quickly.\r\n\r\nShare daily moments through Status\r\n\r\nStatus allows you to share text, photos, video and GIF updates that disappear after 24 hours. You can choose to share status posts with all your contacts or just selected ones.\r\n\r\nUse WhatsApp on your Wear OS watch to continue conversations, reply to messages, and take calls - all from your wrist. And, leverage tiles and complications to easily access your chats and send voice messages.\r\n\r\n\r\n*Data charges may apply. Contact your provider for details.\r\n\r\n---------------------------------------------------------\r\n\r\nIf you have any feedback or questions, please go to WhatsApp > Settings > Help > Contact Us\r\n\r\nTerms of Service: https://www.whatsapp.com/legal/terms-of-service\r\n \r\n Learn more about messaging privately: https://www.whatsapp.com/privacy\r\n \r\n Learn more about WhatsApp safety: https://www.whatsapp.com/security",
+      "version": null,
+      "score": 4.4661193,
+      "ratings": 204311275,
+      "reviews": 1984008,
+      "installs": "5,000,000,000+",
+      "released": "Oct 18, 2010",
+      "updated": 1740627035,
+      "text_analysis": {
+        "title": {
+          "basic_metrics": {
+            "character_count": 18,
+            "word_count": 2,
+            "sentence_count": 1,
+            "paragraph_count": 1
+          },
+          "detailed_metrics": {
+            "avg_word_length": 8.5,
+            "avg_sentence_length": 2.0,
+            "unique_words": 2,
+            "keyword_density": {
+              "whatsapp": 0.5,
+              "messenger": 0.5
+            }
+          },
+          "limits": {
+            "max_chars": 50,
+            "max_words": 10,
+            "recommended_chars": 30,
+            "recommended_words": 5
+          },
+          "optimization": {
+            "character_optimization": {
+              "ratio": 0.36,
+              "score": 0.8,
+              "status": "too_short"
+            },
+            "word_optimization": {
+              "ratio": 0.2,
+              "score": 0.4,
+              "status": "too_short"
+            },
+            "overall_score": 0.6000000000000001
+          },
+          "recommendations": [
+            "Add more content (recommended: 30 characters)",
+            "Add more words (recommended: 5 words)",
+            "Include more relevant keywords",
+            "Reduce keyword repetition for better readability"
+          ]
+        },
+        "description": {
+          "basic_metrics": {
+            "character_count": 2148,
+            "word_count": 327,
+            "sentence_count": 21,
+            "paragraph_count": 1
+          },
+          "detailed_metrics": {
+            "avg_word_length": 4.2798053527980535,
+            "avg_sentence_length": 19.571428571428573,
+            "unique_words": 179,
+            "keyword_density": {
+              "and": 0.046228710462287104,
+              "your": 0.0364963503649635,
+              "to": 0.0267639902676399,
+              "you": 0.019464720194647202,
+              "whatsapp": 0.0170316301703163,
+              "in": 0.014598540145985401,
+              "with": 0.014598540145985401
+            }
+          },
+          "limits": {
+            "max_chars": 4000,
+            "max_words": 800,
+            "recommended_chars": 2000,
+            "recommended_words": 400
+          },
+          "optimization": {
+            "character_optimization": {
+              "ratio": 0.537,
+              "score": 0.963,
+              "status": "good"
+            },
+            "word_optimization": {
+              "ratio": 0.40875,
+              "score": 0.90875,
+              "status": "good"
+            },
+            "overall_score": 0.935875
+          },
+          "recommendations": [
+            "Add more paragraphs to improve readability"
+          ]
+        }
+      }
+    },
+    {
+      "timestamp": "2025-02-27T09:02:55.235540",
+      "record_date": "2025-02-27",
+      "title": "WhatsApp Messenger",
+      "description": "WhatsApp from Meta is a FREE messaging and video calling app. It\u2019s used by over 2B people in more than 180 countries. It\u2019s simple, reliable, and private, so you can easily keep in touch with your friends and family. WhatsApp works across mobile and desktop even on slow connections, with no subscription fees*.\r\n\r\nPrivate messaging across the world\r\n\r\nYour personal messages and calls to friends and family are end-to-end encrypted. No one outside of your chats, not even WhatsApp, can read or listen to them.\r\n\r\nSimple and secure connections, right away\r\n\r\nAll you need is your phone number, no user names or logins. You can quickly view your contacts who are on WhatsApp and start messaging.\r\n\r\nHigh quality voice and video calls\r\n\r\nMake secure video and voice calls with up to 8 people for free*. Your calls work across mobile devices using your phone\u2019s Internet service, even on slow connections.\r\n\r\nGroup chats to keep you in contact\r\n\r\nStay in touch with your friends and family. End-to-end encrypted group chats let you share messages, photos, videos and documents across mobile and desktop.\r\n\r\nStay connected in real time\r\n\r\nShare your location with only those in your individual or group chat, and stop sharing at any time. Or record a voice message to connect quickly.\r\n\r\nShare daily moments through Status\r\n\r\nStatus allows you to share text, photos, video and GIF updates that disappear after 24 hours. You can choose to share status posts with all your contacts or just selected ones.\r\n\r\nUse WhatsApp on your Wear OS watch to continue conversations, reply to messages, and take calls - all from your wrist. And, leverage tiles and complications to easily access your chats and send voice messages.\r\n\r\n\r\n*Data charges may apply. Contact your provider for details.\r\n\r\n---------------------------------------------------------\r\n\r\nIf you have any feedback or questions, please go to WhatsApp > Settings > Help > Contact Us\r\n\r\nTerms of Service: https://www.whatsapp.com/legal/terms-of-service\r\n \r\n Learn more about messaging privately: https://www.whatsapp.com/privacy\r\n \r\n Learn more about WhatsApp safety: https://www.whatsapp.com/security",
+      "version": null,
+      "score": 4.466107,
+      "ratings": 204310619,
+      "reviews": 1984011,
+      "installs": "5,000,000,000+",
+      "released": "Oct 18, 2010",
+      "updated": 1740627035,
+      "text_analysis": {
+        "title": {
+          "basic_metrics": {
+            "character_count": 18,
+            "word_count": 2,
+            "sentence_count": 1,
+            "paragraph_count": 1
+          },
+          "detailed_metrics": {
+            "avg_word_length": 8.5,
+            "avg_sentence_length": 2.0,
+            "unique_words": 2,
+            "keyword_density": {
+              "whatsapp": 0.5,
+              "messenger": 0.5
+            }
+          },
+          "limits": {
+            "max_chars": 50,
+            "max_words": 10,
+            "recommended_chars": 30,
+            "recommended_words": 5
+          },
+          "optimization": {
+            "character_optimization": {
+              "ratio": 0.36,
+              "score": 0.8,
+              "status": "too_short"
+            },
+            "word_optimization": {
+              "ratio": 0.2,
+              "score": 0.4,
+              "status": "too_short"
+            },
+            "overall_score": 0.6000000000000001
+          },
+          "recommendations": [
+            "Add more content (recommended: 30 characters)",
+            "Add more words (recommended: 5 words)",
+            "Include more relevant keywords",
+            "Reduce keyword repetition for better readability"
+          ]
+        },
+        "description": {
+          "basic_metrics": {
+            "character_count": 2148,
+            "word_count": 327,
+            "sentence_count": 21,
+            "paragraph_count": 1
+          },
+          "detailed_metrics": {
+            "avg_word_length": 4.2798053527980535,
+            "avg_sentence_length": 19.571428571428573,
+            "unique_words": 179,
+            "keyword_density": {
+              "and": 0.046228710462287104,
+              "your": 0.0364963503649635,
+              "to": 0.0267639902676399,
+              "you": 0.019464720194647202,
+              "whatsapp": 0.0170316301703163,
+              "in": 0.014598540145985401,
+              "with": 0.014598540145985401
+            }
+          },
+          "limits": {
+            "max_chars": 4000,
+            "max_words": 800,
+            "recommended_chars": 2000,
+            "recommended_words": 400
+          },
+          "optimization": {
+            "character_optimization": {
+              "ratio": 0.537,
+              "score": 0.963,
+              "status": "good"
+            },
+            "word_optimization": {
+              "ratio": 0.40875,
+              "score": 0.90875,
+              "status": "good"
+            },
+            "overall_score": 0.935875
+          },
+          "recommendations": [
+            "Add more paragraphs to improve readability"
+          ]
+        }
+      }
+    },
+    {
+      "timestamp": "2025-02-27T09:02:55.473294",
+      "record_date": "2025-02-27",
+      "title": "WhatsApp Messenger",
+      "description": "WhatsApp from Meta is a FREE messaging and video calling app. It\u2019s used by over 2B people in more than 180 countries. It\u2019s simple, reliable, and private, so you can easily keep in touch with your friends and family. WhatsApp works across mobile and desktop even on slow connections, with no subscription fees*.\r\n\r\nPrivate messaging across the world\r\n\r\nYour personal messages and calls to friends and family are end-to-end encrypted. No one outside of your chats, not even WhatsApp, can read or listen to them.\r\n\r\nSimple and secure connections, right away\r\n\r\nAll you need is your phone number, no user names or logins. You can quickly view your contacts who are on WhatsApp and start messaging.\r\n\r\nHigh quality voice and video calls\r\n\r\nMake secure video and voice calls with up to 8 people for free*. Your calls work across mobile devices using your phone\u2019s Internet service, even on slow connections.\r\n\r\nGroup chats to keep you in contact\r\n\r\nStay in touch with your friends and family. End-to-end encrypted group chats let you share messages, photos, videos and documents across mobile and desktop.\r\n\r\nStay connected in real time\r\n\r\nShare your location with only those in your individual or group chat, and stop sharing at any time. Or record a voice message to connect quickly.\r\n\r\nShare daily moments through Status\r\n\r\nStatus allows you to share text, photos, video and GIF updates that disappear after 24 hours. You can choose to share status posts with all your contacts or just selected ones.\r\n\r\nUse WhatsApp on your Wear OS watch to continue conversations, reply to messages, and take calls - all from your wrist. And, leverage tiles and complications to easily access your chats and send voice messages.\r\n\r\n\r\n*Data charges may apply. Contact your provider for details.\r\n\r\n---------------------------------------------------------\r\n\r\nIf you have any feedback or questions, please go to WhatsApp > Settings > Help > Contact Us\r\n\r\nTerms of Service: https://www.whatsapp.com/legal/terms-of-service\r\n \r\n Learn more about messaging privately: https://www.whatsapp.com/privacy\r\n \r\n Learn more about WhatsApp safety: https://www.whatsapp.com/security",
+      "version": null,
+      "score": 4.466107,
+      "ratings": 204310606,
+      "reviews": 1984011,
+      "installs": "5,000,000,000+",
+      "released": "Oct 18, 2010",
+      "updated": 1740627035,
+      "text_analysis": {
+        "title": {
+          "basic_metrics": {
+            "character_count": 18,
+            "word_count": 2,
+            "sentence_count": 1,
+            "paragraph_count": 1
+          },
+          "detailed_metrics": {
+            "avg_word_length": 8.5,
+            "avg_sentence_length": 2.0,
+            "unique_words": 2,
+            "keyword_density": {
+              "whatsapp": 0.5,
+              "messenger": 0.5
+            }
+          },
+          "limits": {
+            "max_chars": 50,
+            "max_words": 10,
+            "recommended_chars": 30,
+            "recommended_words": 5
+          },
+          "optimization": {
+            "character_optimization": {
+              "ratio": 0.36,
+              "score": 0.8,
+              "status": "too_short"
+            },
+            "word_optimization": {
+              "ratio": 0.2,
+              "score": 0.4,
+              "status": "too_short"
+            },
+            "overall_score": 0.6000000000000001
+          },
+          "recommendations": [
+            "Add more content (recommended: 30 characters)",
+            "Add more words (recommended: 5 words)",
+            "Include more relevant keywords",
+            "Reduce keyword repetition for better readability"
+          ]
+        },
+        "description": {
+          "basic_metrics": {
+            "character_count": 2148,
+            "word_count": 327,
+            "sentence_count": 21,
+            "paragraph_count": 1
+          },
+          "detailed_metrics": {
+            "avg_word_length": 4.2798053527980535,
+            "avg_sentence_length": 19.571428571428573,
+            "unique_words": 179,
+            "keyword_density": {
+              "and": 0.046228710462287104,
+              "your": 0.0364963503649635,
+              "to": 0.0267639902676399,
+              "you": 0.019464720194647202,
+              "whatsapp": 0.0170316301703163,
+              "in": 0.014598540145985401,
+              "with": 0.014598540145985401
+            }
+          },
+          "limits": {
+            "max_chars": 4000,
+            "max_words": 800,
+            "recommended_chars": 2000,
+            "recommended_words": 400
+          },
+          "optimization": {
+            "character_optimization": {
+              "ratio": 0.537,
+              "score": 0.963,
+              "status": "good"
+            },
+            "word_optimization": {
+              "ratio": 0.40875,
+              "score": 0.90875,
+              "status": "good"
+            },
+            "overall_score": 0.935875
+          },
+          "recommendations": [
+            "Add more paragraphs to improve readability"
+          ]
+        }
+      }
+    },
+    {
+      "timestamp": "2025-02-27T09:02:55.860494",
+      "record_date": "2025-02-27",
+      "title": "WhatsApp Messenger",
+      "description": "WhatsApp from Meta is a FREE messaging and video calling app. It\u2019s used by over 2B people in more than 180 countries. It\u2019s simple, reliable, and private, so you can easily keep in touch with your friends and family. WhatsApp works across mobile and desktop even on slow connections, with no subscription fees*.\r\n\r\nPrivate messaging across the world\r\n\r\nYour personal messages and calls to friends and family are end-to-end encrypted. No one outside of your chats, not even WhatsApp, can read or listen to them.\r\n\r\nSimple and secure connections, right away\r\n\r\nAll you need is your phone number, no user names or logins. You can quickly view your contacts who are on WhatsApp and start messaging.\r\n\r\nHigh quality voice and video calls\r\n\r\nMake secure video and voice calls with up to 8 people for free*. Your calls work across mobile devices using your phone\u2019s Internet service, even on slow connections.\r\n\r\nGroup chats to keep you in contact\r\n\r\nStay in touch with your friends and family. End-to-end encrypted group chats let you share messages, photos, videos and documents across mobile and desktop.\r\n\r\nStay connected in real time\r\n\r\nShare your location with only those in your individual or group chat, and stop sharing at any time. Or record a voice message to connect quickly.\r\n\r\nShare daily moments through Status\r\n\r\nStatus allows you to share text, photos, video and GIF updates that disappear after 24 hours. You can choose to share status posts with all your contacts or just selected ones.\r\n\r\nUse WhatsApp on your Wear OS watch to continue conversations, reply to messages, and take calls - all from your wrist. And, leverage tiles and complications to easily access your chats and send voice messages.\r\n\r\n\r\n*Data charges may apply. Contact your provider for details.\r\n\r\n---------------------------------------------------------\r\n\r\nIf you have any feedback or questions, please go to WhatsApp > Settings > Help > Contact Us\r\n\r\nTerms of Service: https://www.whatsapp.com/legal/terms-of-service\r\n \r\n Learn more about messaging privately: https://www.whatsapp.com/privacy\r\n \r\n Learn more about WhatsApp safety: https://www.whatsapp.com/security",
+      "version": null,
+      "score": 4.466107,
+      "ratings": 204310619,
+      "reviews": 1984011,
+      "installs": "5,000,000,000+",
+      "released": "Oct 18, 2010",
+      "updated": 1740627035,
+      "text_analysis": {
+        "title": {
+          "basic_metrics": {
+            "character_count": 18,
+            "word_count": 2,
+            "sentence_count": 1,
+            "paragraph_count": 1
+          },
+          "detailed_metrics": {
+            "avg_word_length": 8.5,
+            "avg_sentence_length": 2.0,
+            "unique_words": 2,
+            "keyword_density": {
+              "whatsapp": 0.5,
+              "messenger": 0.5
+            }
+          },
+          "limits": {
+            "max_chars": 50,
+            "max_words": 10,
+            "recommended_chars": 30,
+            "recommended_words": 5
+          },
+          "optimization": {
+            "character_optimization": {
+              "ratio": 0.36,
+              "score": 0.8,
+              "status": "too_short"
+            },
+            "word_optimization": {
+              "ratio": 0.2,
+              "score": 0.4,
+              "status": "too_short"
+            },
+            "overall_score": 0.6000000000000001
+          },
+          "recommendations": [
+            "Add more content (recommended: 30 characters)",
+            "Add more words (recommended: 5 words)",
+            "Include more relevant keywords",
+            "Reduce keyword repetition for better readability"
+          ]
+        },
+        "description": {
+          "basic_metrics": {
+            "character_count": 2148,
+            "word_count": 327,
+            "sentence_count": 21,
+            "paragraph_count": 1
+          },
+          "detailed_metrics": {
+            "avg_word_length": 4.2798053527980535,
+            "avg_sentence_length": 19.571428571428573,
+            "unique_words": 179,
+            "keyword_density": {
+              "and": 0.046228710462287104,
+              "your": 0.0364963503649635,
+              "to": 0.0267639902676399,
+              "you": 0.019464720194647202,
+              "whatsapp": 0.0170316301703163,
+              "in": 0.014598540145985401,
+              "with": 0.014598540145985401
+            }
+          },
+          "limits": {
+            "max_chars": 4000,
+            "max_words": 800,
+            "recommended_chars": 2000,
+            "recommended_words": 400
+          },
+          "optimization": {
+            "character_optimization": {
+              "ratio": 0.537,
+              "score": 0.963,
+              "status": "good"
+            },
+            "word_optimization": {
+              "ratio": 0.40875,
+              "score": 0.90875,
+              "status": "good"
+            },
+            "overall_score": 0.935875
+          },
+          "recommendations": [
+            "Add more paragraphs to improve readability"
+          ]
+        }
+      }
+    },
+    {
+      "timestamp": "2025-02-27T09:02:56.028349",
+      "record_date": "2025-02-27",
+      "title": "WhatsApp Messenger",
+      "description": "WhatsApp from Meta is a FREE messaging and video calling app. It\u2019s used by over 2B people in more than 180 countries. It\u2019s simple, reliable, and private, so you can easily keep in touch with your friends and family. WhatsApp works across mobile and desktop even on slow connections, with no subscription fees*.\r\n\r\nPrivate messaging across the world\r\n\r\nYour personal messages and calls to friends and family are end-to-end encrypted. No one outside of your chats, not even WhatsApp, can read or listen to them.\r\n\r\nSimple and secure connections, right away\r\n\r\nAll you need is your phone number, no user names or logins. You can quickly view your contacts who are on WhatsApp and start messaging.\r\n\r\nHigh quality voice and video calls\r\n\r\nMake secure video and voice calls with up to 8 people for free*. Your calls work across mobile devices using your phone\u2019s Internet service, even on slow connections.\r\n\r\nGroup chats to keep you in contact\r\n\r\nStay in touch with your friends and family. End-to-end encrypted group chats let you share messages, photos, videos and documents across mobile and desktop.\r\n\r\nStay connected in real time\r\n\r\nShare your location with only those in your individual or group chat, and stop sharing at any time. Or record a voice message to connect quickly.\r\n\r\nShare daily moments through Status\r\n\r\nStatus allows you to share text, photos, video and GIF updates that disappear after 24 hours. You can choose to share status posts with all your contacts or just selected ones.\r\n\r\nUse WhatsApp on your Wear OS watch to continue conversations, reply to messages, and take calls - all from your wrist. And, leverage tiles and complications to easily access your chats and send voice messages.\r\n\r\n\r\n*Data charges may apply. Contact your provider for details.\r\n\r\n---------------------------------------------------------\r\n\r\nIf you have any feedback or questions, please go to WhatsApp > Settings > Help > Contact Us\r\n\r\nTerms of Service: https://www.whatsapp.com/legal/terms-of-service\r\n \r\n Learn more about messaging privately: https://www.whatsapp.com/privacy\r\n \r\n Learn more about WhatsApp safety: https://www.whatsapp.com/security",
+      "version": null,
+      "score": 4.466107,
+      "ratings": 204311856,
+      "reviews": 1984011,
+      "installs": "5,000,000,000+",
+      "released": "Oct 18, 2010",
+      "updated": 1740627035,
+      "text_analysis": {
+        "title": {
+          "basic_metrics": {
+            "character_count": 18,
+            "word_count": 2,
+            "sentence_count": 1,
+            "paragraph_count": 1
+          },
+          "detailed_metrics": {
+            "avg_word_length": 8.5,
+            "avg_sentence_length": 2.0,
+            "unique_words": 2,
+            "keyword_density": {
+              "whatsapp": 0.5,
+              "messenger": 0.5
+            }
+          },
+          "limits": {
+            "max_chars": 50,
+            "max_words": 10,
+            "recommended_chars": 30,
+            "recommended_words": 5
+          },
+          "optimization": {
+            "character_optimization": {
+              "ratio": 0.36,
+              "score": 0.8,
+              "status": "too_short"
+            },
+            "word_optimization": {
+              "ratio": 0.2,
+              "score": 0.4,
+              "status": "too_short"
+            },
+            "overall_score": 0.6000000000000001
+          },
+          "recommendations": [
+            "Add more content (recommended: 30 characters)",
+            "Add more words (recommended: 5 words)",
+            "Include more relevant keywords",
+            "Reduce keyword repetition for better readability"
+          ]
+        },
+        "description": {
+          "basic_metrics": {
+            "character_count": 2148,
+            "word_count": 327,
+            "sentence_count": 21,
+            "paragraph_count": 1
+          },
+          "detailed_metrics": {
+            "avg_word_length": 4.2798053527980535,
+            "avg_sentence_length": 19.571428571428573,
+            "unique_words": 179,
+            "keyword_density": {
+              "and": 0.046228710462287104,
+              "your": 0.0364963503649635,
+              "to": 0.0267639902676399,
+              "you": 0.019464720194647202,
+              "whatsapp": 0.0170316301703163,
+              "in": 0.014598540145985401,
+              "with": 0.014598540145985401
+            }
+          },
+          "limits": {
+            "max_chars": 4000,
+            "max_words": 800,
+            "recommended_chars": 2000,
+            "recommended_words": 400
+          },
+          "optimization": {
+            "character_optimization": {
+              "ratio": 0.537,
+              "score": 0.963,
+              "status": "good"
+            },
+            "word_optimization": {
+              "ratio": 0.40875,
+              "score": 0.90875,
+              "status": "good"
+            },
+            "overall_score": 0.935875
+          },
+          "recommendations": [
+            "Add more paragraphs to improve readability"
+          ]
+        }
+      }
+    },
+    {
+      "timestamp": "2025-02-27T09:02:56.660061",
+      "record_date": "2025-02-27",
+      "title": "WhatsApp Messenger",
+      "description": "WhatsApp from Meta is a FREE messaging and video calling app. It\u2019s used by over 2B people in more than 180 countries. It\u2019s simple, reliable, and private, so you can easily keep in touch with your friends and family. WhatsApp works across mobile and desktop even on slow connections, with no subscription fees*.\r\n\r\nPrivate messaging across the world\r\n\r\nYour personal messages and calls to friends and family are end-to-end encrypted. No one outside of your chats, not even WhatsApp, can read or listen to them.\r\n\r\nSimple and secure connections, right away\r\n\r\nAll you need is your phone number, no user names or logins. You can quickly view your contacts who are on WhatsApp and start messaging.\r\n\r\nHigh quality voice and video calls\r\n\r\nMake secure video and voice calls with up to 8 people for free*. Your calls work across mobile devices using your phone\u2019s Internet service, even on slow connections.\r\n\r\nGroup chats to keep you in contact\r\n\r\nStay in touch with your friends and family. End-to-end encrypted group chats let you share messages, photos, videos and documents across mobile and desktop.\r\n\r\nStay connected in real time\r\n\r\nShare your location with only those in your individual or group chat, and stop sharing at any time. Or record a voice message to connect quickly.\r\n\r\nShare daily moments through Status\r\n\r\nStatus allows you to share text, photos, video and GIF updates that disappear after 24 hours. You can choose to share status posts with all your contacts or just selected ones.\r\n\r\nUse WhatsApp on your Wear OS watch to continue conversations, reply to messages, and take calls - all from your wrist. And, leverage tiles and complications to easily access your chats and send voice messages.\r\n\r\n\r\n*Data charges may apply. Contact your provider for details.\r\n\r\n---------------------------------------------------------\r\n\r\nIf you have any feedback or questions, please go to WhatsApp > Settings > Help > Contact Us\r\n\r\nTerms of Service: https://www.whatsapp.com/legal/terms-of-service\r\n \r\n Learn more about messaging privately: https://www.whatsapp.com/privacy\r\n \r\n Learn more about WhatsApp safety: https://www.whatsapp.com/security",
+      "version": null,
+      "score": 4.466107,
+      "ratings": 204310619,
+      "reviews": 1984011,
+      "installs": "5,000,000,000+",
+      "released": "Oct 18, 2010",
+      "updated": 1740627035,
+      "text_analysis": {
+        "title": {
+          "basic_metrics": {
+            "character_count": 18,
+            "word_count": 2,
+            "sentence_count": 1,
+            "paragraph_count": 1
+          },
+          "detailed_metrics": {
+            "avg_word_length": 8.5,
+            "avg_sentence_length": 2.0,
+            "unique_words": 2,
+            "keyword_density": {
+              "whatsapp": 0.5,
+              "messenger": 0.5
+            }
+          },
+          "limits": {
+            "max_chars": 50,
+            "max_words": 10,
+            "recommended_chars": 30,
+            "recommended_words": 5
+          },
+          "optimization": {
+            "character_optimization": {
+              "ratio": 0.36,
+              "score": 0.8,
+              "status": "too_short"
+            },
+            "word_optimization": {
+              "ratio": 0.2,
+              "score": 0.4,
+              "status": "too_short"
+            },
+            "overall_score": 0.6000000000000001
+          },
+          "recommendations": [
+            "Add more content (recommended: 30 characters)",
+            "Add more words (recommended: 5 words)",
+            "Include more relevant keywords",
+            "Reduce keyword repetition for better readability"
+          ]
+        },
+        "description": {
+          "basic_metrics": {
+            "character_count": 2148,
+            "word_count": 327,
+            "sentence_count": 21,
+            "paragraph_count": 1
+          },
+          "detailed_metrics": {
+            "avg_word_length": 4.2798053527980535,
+            "avg_sentence_length": 19.571428571428573,
+            "unique_words": 179,
+            "keyword_density": {
+              "and": 0.046228710462287104,
+              "your": 0.0364963503649635,
+              "to": 0.0267639902676399,
+              "you": 0.019464720194647202,
+              "whatsapp": 0.0170316301703163,
+              "in": 0.014598540145985401,
+              "with": 0.014598540145985401
+            }
+          },
+          "limits": {
+            "max_chars": 4000,
+            "max_words": 800,
+            "recommended_chars": 2000,
+            "recommended_words": 400
+          },
+          "optimization": {
+            "character_optimization": {
+              "ratio": 0.537,
+              "score": 0.963,
+              "status": "good"
+            },
+            "word_optimization": {
+              "ratio": 0.40875,
+              "score": 0.90875,
+              "status": "good"
+            },
+            "overall_score": 0.935875
+          },
+          "recommendations": [
+            "Add more paragraphs to improve readability"
+          ]
+        }
+      }
+    },
+    {
+      "timestamp": "2025-02-27T09:02:57.282318",
+      "record_date": "2025-02-27",
+      "title": "WhatsApp Messenger",
+      "description": "WhatsApp from Meta is a FREE messaging and video calling app. It\u2019s used by over 2B people in more than 180 countries. It\u2019s simple, reliable, and private, so you can easily keep in touch with your friends and family. WhatsApp works across mobile and desktop even on slow connections, with no subscription fees*.\r\n\r\nPrivate messaging across the world\r\n\r\nYour personal messages and calls to friends and family are end-to-end encrypted. No one outside of your chats, not even WhatsApp, can read or listen to them.\r\n\r\nSimple and secure connections, right away\r\n\r\nAll you need is your phone number, no user names or logins. You can quickly view your contacts who are on WhatsApp and start messaging.\r\n\r\nHigh quality voice and video calls\r\n\r\nMake secure video and voice calls with up to 8 people for free*. Your calls work across mobile devices using your phone\u2019s Internet service, even on slow connections.\r\n\r\nGroup chats to keep you in contact\r\n\r\nStay in touch with your friends and family. End-to-end encrypted group chats let you share messages, photos, videos and documents across mobile and desktop.\r\n\r\nStay connected in real time\r\n\r\nShare your location with only those in your individual or group chat, and stop sharing at any time. Or record a voice message to connect quickly.\r\n\r\nShare daily moments through Status\r\n\r\nStatus allows you to share text, photos, video and GIF updates that disappear after 24 hours. You can choose to share status posts with all your contacts or just selected ones.\r\n\r\nUse WhatsApp on your Wear OS watch to continue conversations, reply to messages, and take calls - all from your wrist. And, leverage tiles and complications to easily access your chats and send voice messages.\r\n\r\n\r\n*Data charges may apply. Contact your provider for details.\r\n\r\n---------------------------------------------------------\r\n\r\nIf you have any feedback or questions, please go to WhatsApp > Settings > Help > Contact Us\r\n\r\nTerms of Service: https://www.whatsapp.com/legal/terms-of-service\r\n \r\n Learn more about messaging privately: https://www.whatsapp.com/privacy\r\n \r\n Learn more about WhatsApp safety: https://www.whatsapp.com/security",
+      "version": null,
+      "score": 4.4661193,
+      "ratings": 204311275,
+      "reviews": 1984008,
+      "installs": "5,000,000,000+",
+      "released": "Oct 18, 2010",
+      "updated": 1740627035,
+      "text_analysis": {
+        "title": {
+          "basic_metrics": {
+            "character_count": 18,
+            "word_count": 2,
+            "sentence_count": 1,
+            "paragraph_count": 1
+          },
+          "detailed_metrics": {
+            "avg_word_length": 8.5,
+            "avg_sentence_length": 2.0,
+            "unique_words": 2,
+            "keyword_density": {
+              "whatsapp": 0.5,
+              "messenger": 0.5
+            }
+          },
+          "limits": {
+            "max_chars": 50,
+            "max_words": 10,
+            "recommended_chars": 30,
+            "recommended_words": 5
+          },
+          "optimization": {
+            "character_optimization": {
+              "ratio": 0.36,
+              "score": 0.8,
+              "status": "too_short"
+            },
+            "word_optimization": {
+              "ratio": 0.2,
+              "score": 0.4,
+              "status": "too_short"
+            },
+            "overall_score": 0.6000000000000001
+          },
+          "recommendations": [
+            "Add more content (recommended: 30 characters)",
+            "Add more words (recommended: 5 words)",
+            "Include more relevant keywords",
+            "Reduce keyword repetition for better readability"
+          ]
+        },
+        "description": {
+          "basic_metrics": {
+            "character_count": 2148,
+            "word_count": 327,
+            "sentence_count": 21,
+            "paragraph_count": 1
+          },
+          "detailed_metrics": {
+            "avg_word_length": 4.2798053527980535,
+            "avg_sentence_length": 19.571428571428573,
+            "unique_words": 179,
+            "keyword_density": {
+              "and": 0.046228710462287104,
+              "your": 0.0364963503649635,
+              "to": 0.0267639902676399,
+              "you": 0.019464720194647202,
+              "whatsapp": 0.0170316301703163,
+              "in": 0.014598540145985401,
+              "with": 0.014598540145985401
+            }
+          },
+          "limits": {
+            "max_chars": 4000,
+            "max_words": 800,
+            "recommended_chars": 2000,
+            "recommended_words": 400
+          },
+          "optimization": {
+            "character_optimization": {
+              "ratio": 0.537,
+              "score": 0.963,
+              "status": "good"
+            },
+            "word_optimization": {
+              "ratio": 0.40875,
+              "score": 0.90875,
+              "status": "good"
+            },
+            "overall_score": 0.935875
+          },
+          "recommendations": [
+            "Add more paragraphs to improve readability"
+          ]
+        }
+      }
+    }
+  ]
+}

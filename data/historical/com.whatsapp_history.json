@@ -1,0 +1,36 @@
+{
+  "metrics": [
+    {
+      "timestamp": "2025-02-27T05:25:23.999690",
+      "ratings": 4.4661226,
+      "total_ratings": 204305480,
+      "reviews": 1983980,
+      "installs": 5000000000,
+      "version": null
+    },
+    {
+      "timestamp": "2025-02-27T05:25:43.239784",
+      "ratings": 4.4661226,
+      "total_ratings": 204305480,
+      "reviews": 1983980,
+      "installs": 5000000000,
+      "version": null
+    },
+    {
+      "timestamp": "2025-02-27T06:53:16.779634",
+      "ratings": 4.4661274,
+      "total_ratings": 204306961,
+      "reviews": 1983991,
+      "installs": 5000000000,
+      "version": null
+    },
+    {
+      "timestamp": "2025-02-27T06:53:21.950037",
+      "ratings": 4.4661274,
+      "total_ratings": 204306961,
+      "reviews": 1983991,
+      "installs": 5000000000,
+      "version": null
+    }
+  ]
+}

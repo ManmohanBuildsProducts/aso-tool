@@ -271,7 +271,7 @@ const AppAnalyzer = () => {
 
   return (
     <Container maxWidth="lg">
-      <Box py={4}>
+      <Box pt={2} pb={4}>
         <Typography variant="h4" gutterBottom>
           ASO Analysis Tool
         </Typography>

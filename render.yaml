@@ -6,14 +6,14 @@ services:
     buildCommand: |
       pip install -r requirements.txt
       python -c "import nltk; nltk.download('punkt'); nltk.download('vader_lexicon')"
-      mkdir -p app/static
-    startCommand: PYTHONPATH=/app python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT
+      mkdir -p src/app/static
+    startCommand: PYTHONPATH=/app/src python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PYTHONPATH
-        value: /app
+        value: /app/src
       - key: NLTK_DATA
         value: /opt/render/nltk_data
       - key: STATIC_DIR
-        value: /app/app/static
+        value: /app/src/app/static
     healthCheckPath: /health
     autoDeploy: true

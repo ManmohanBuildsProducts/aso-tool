@@ -1,16 +1,28 @@
-#!/usr/bin/env bash
-# exit on error
+#!/bin/bash
 set -o errexit
 
-# Install Python dependencies
+echo "Installing Python dependencies..."
 pip install -r requirements.txt
 
-# Install Node.js
-curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-apt-get install -y nodejs
+echo "Setting up Node.js..."
+# Download and extract Node.js binary
+curl -o nodejs.tar.xz https://nodejs.org/dist/v20.11.1/node-v20.11.1-linux-x64.tar.xz
+mkdir -p nodejs
+tar -xf nodejs.tar.xz -C nodejs --strip-components=1
+export PATH=$PATH:$(pwd)/nodejs/bin
 
-# Build frontend
+echo "Installing frontend dependencies..."
 cd frontend
 npm install
+
+echo "Building frontend..."
 npm run build
 cd ..
+
+echo "Creating data directories..."
+mkdir -p data/historical data/metadata_history
+
+echo "Setting permissions..."
+chmod -R 755 data
+
+echo "Build completed successfully!"

@@ -362,6 +362,7 @@ const AppAnalyzer = () => {
 
     const appData = analysisResults.appAnalysis.data;
     const competitors = analysisResults.competitorAnalysis?.comparison?.competitors || [];
+    const metrics = analysisResults.competitorAnalysis?.comparison?.metrics_comparison || {};
 
     return (
       <Grid container spacing={3}>
@@ -382,18 +383,72 @@ const AppAnalyzer = () => {
         {competitors.length > 0 && (
           <Grid item xs={12}>
             <Paper elevation={2} sx={{ p: 2 }}>
+              <Typography variant="h6" gutterBottom>Market Position</Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={4}>
+                  <Typography><strong>Average Competitor Rating:</strong></Typography>
+                  <Typography>{metrics.ratings?.avg_competitor_rating?.toFixed(2) || 'N/A'}</Typography>
+                  <LinearProgress 
+                    variant="determinate" 
+                    value={(metrics.ratings?.avg_competitor_rating || 0) * 20}
+                    sx={{ mt: 1 }}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <Typography><strong>Average Competitor Installs:</strong></Typography>
+                  <Typography>{(metrics.installs?.avg_competitor_installs || 0).toLocaleString()}</Typography>
+                  <LinearProgress 
+                    variant="determinate" 
+                    value={(appData.minInstalls / metrics.installs?.avg_competitor_installs || 0) * 100}
+                    sx={{ mt: 1 }}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <Typography><strong>Market Position:</strong></Typography>
+                  <Typography>
+                    {metrics.market_position?.rating_percentile > 50 ? 'Leading' : 'Growing'}
+                  </Typography>
+                </Grid>
+              </Grid>
+            </Paper>
+          </Grid>
+        )}
+
+        {competitors.length > 0 && (
+          <Grid item xs={12}>
+            <Paper elevation={2} sx={{ p: 2 }}>
               <Typography variant="h6" gutterBottom>Competitor Analysis</Typography>
               {competitors.map((comp, index) => (
-                <Box key={index} sx={{ mb: 2 }}>
-                  <Typography variant="subtitle1" gutterBottom><strong>{comp.details.title}</strong></Typography>
+                <Box key={index} sx={{ mb: 2, p: 2, border: '1px solid #eee', borderRadius: 1 }}>
+                  <Typography variant="subtitle1" gutterBottom>
+                    <strong>{comp.details.title}</strong>
+                  </Typography>
                   <Grid container spacing={2}>
                     <Grid item xs={12} sm={6}>
                       <Typography><strong>Installs:</strong> {comp.details.installs}</Typography>
-                      <Typography><strong>Rating:</strong> {comp.details.score || 'N/A'}</Typography>
+                      <Typography><strong>Rating:</strong> {comp.details.score?.toFixed(2) || 'N/A'}</Typography>
                     </Grid>
                     <Grid item xs={12} sm={6}>
-                      <Typography><strong>Reviews:</strong> {comp.details.reviews || 'N/A'}</Typography>
+                      <Typography><strong>Reviews:</strong> {comp.details.reviews?.toLocaleString() || 'N/A'}</Typography>
                       <Typography><strong>Category:</strong> {comp.details.genre}</Typography>
+                    </Grid>
+                    <Grid item xs={12}>
+                      <Typography><strong>Rating Distribution:</strong></Typography>
+                      {comp.details.histogram && (
+                        <Box sx={{ mt: 1 }}>
+                          {comp.details.histogram.map((count, idx) => (
+                            <Box key={idx} sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+                              <Typography sx={{ minWidth: 70 }}>{5 - idx} stars:</Typography>
+                              <LinearProgress 
+                                variant="determinate" 
+                                value={(count / Math.max(...comp.details.histogram)) * 100}
+                                sx={{ flexGrow: 1, ml: 1 }}
+                              />
+                              <Typography sx={{ ml: 1 }}>{count.toLocaleString()}</Typography>
+                            </Box>
+                          ))}
+                        </Box>
+                      )}
                     </Grid>
                   </Grid>
                 </Box>

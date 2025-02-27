@@ -5,13 +5,13 @@ from datetime import datetime
 class KeywordSuggestion(BaseModel):
     keyword: str
     relevance: float = Field(ge=0, le=1)
-    competition: str = Field(regex="^(high|medium|low)$")
-    priority: str = Field(regex="^(high|medium|low)$")
+    competition: str = Field(pattern="^(high|medium|low)$")
+    priority: str = Field(pattern="^(high|medium|low)$")
 
 class LongTailKeyword(BaseModel):
     keyword: str
-    search_intent: str = Field(regex="^(informational|transactional|navigational)$")
-    opportunity: str = Field(regex="^(high|medium|low)$")
+    search_intent: str = Field(pattern="^(informational|transactional|navigational)$")
+    opportunity: str = Field(pattern="^(high|medium|low)$")
 
 class RelatedTerm(BaseModel):
     term: str

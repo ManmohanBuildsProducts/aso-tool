@@ -35,15 +35,18 @@ health_checker = HealthCheck()
 import os
 from fastapi.responses import FileResponse
 
+# Get static directory from environment variable or use default
+static_dir = os.getenv("STATIC_DIR", os.path.join(os.path.dirname(__file__), "static"))
+
 # Create static directory if it doesn't exist
-os.makedirs("static", exist_ok=True)
+os.makedirs(static_dir, exist_ok=True)
 
 # Mount static files
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 @app.get("/")
 async def read_root():
-    return FileResponse("static/index.html")
+    return FileResponse(os.path.join(static_dir, "index.html"))
 
 # Include routers
 app.include_router(app_analysis.router, prefix="/api", tags=["App Analysis"])

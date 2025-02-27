@@ -1,22 +1,33 @@
-from fastapi import FastAPI
-from dotenv import load_dotenv
-from starlette.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, HTTPException, Depends, status
+from fastapi.security import OAuth2PasswordBearer
+from fastapi.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
-import uvicorn
+from pydantic import BaseModel, Field
+from typing import List, Optional
+from datetime import datetime
 import os
 import logging
 from pathlib import Path
+from dotenv import load_dotenv
 
+# Load environment variables
 ROOT_DIR = Path(__file__).parent.parent
-
 load_dotenv(ROOT_DIR / '.env')
 
-# MongoDB connection
+# MongoDB setup
 mongo_url = os.environ.get('MONGO_URL', "")
 client = AsyncIOMotorClient(mongo_url)
-db = client.test_database
+db = client.playstore_tracker
 
-app = FastAPI()
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+# FastAPI app setup
+app = FastAPI(title="Play Store Ranking Tracker")
 
 app.add_middleware(
     CORSMiddleware,
@@ -26,20 +37,97 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+# Pydantic models
+class AppBase(BaseModel):
+    package_name: str
+    name: str
+    is_competitor: bool = False
+    metadata: dict = Field(default_factory=dict)
 
+class KeywordBase(BaseModel):
+    keyword: str
+    category: str
+    traffic_score: Optional[float] = None
+    difficulty_score: Optional[float] = None
+    last_updated: datetime = Field(default_factory=datetime.utcnow)
+
+class RankingBase(BaseModel):
+    app_id: str
+    keyword_id: str
+    rank: int
+    date: datetime = Field(default_factory=datetime.utcnow)
+
+class UserBase(BaseModel):
+    email: str
+    name: str
+    role: str = "marketing"
+
+# API endpoints
 @app.get("/")
 async def root():
-    return {"message": "Hello World"}
+    return {"status": "healthy", "service": "Play Store Ranking Tracker"}
 
+# App management endpoints
+@app.post("/apps/", response_model=AppBase)
+async def create_app(app: AppBase):
+    try:
+        result = await db.apps.insert_one(app.dict())
+        created_app = await db.apps.find_one({"_id": result.inserted_id})
+        return {**created_app, "id": str(created_app["_id"])}
+    except Exception as e:
+        logger.error(f"Error creating app: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/apps/", response_model=List[AppBase])
+async def get_apps():
+    try:
+        apps = await db.apps.find().to_list(length=100)
+        return [{**app, "id": str(app["_id"])} for app in apps]
+    except Exception as e:
+        logger.error(f"Error fetching apps: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Keyword management endpoints
+@app.post("/keywords/", response_model=KeywordBase)
+async def create_keyword(keyword: KeywordBase):
+    try:
+        result = await db.keywords.insert_one(keyword.dict())
+        created_keyword = await db.keywords.find_one({"_id": result.inserted_id})
+        return {**created_keyword, "id": str(created_keyword["_id"])}
+    except Exception as e:
+        logger.error(f"Error creating keyword: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/keywords/", response_model=List[KeywordBase])
+async def get_keywords():
+    try:
+        keywords = await db.keywords.find().to_list(length=100)
+        return [{**keyword, "id": str(keyword["_id"])} for keyword in keywords]
+    except Exception as e:
+        logger.error(f"Error fetching keywords: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Ranking tracking endpoints
+@app.post("/rankings/", response_model=RankingBase)
+async def create_ranking(ranking: RankingBase):
+    try:
+        result = await db.rankings.insert_one(ranking.dict())
+        created_ranking = await db.rankings.find_one({"_id": result.inserted_id})
+        return {**created_ranking, "id": str(created_ranking["_id"])}
+    except Exception as e:
+        logger.error(f"Error creating ranking: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/rankings/{app_id}", response_model=List[RankingBase])
+async def get_app_rankings(app_id: str):
+    try:
+        rankings = await db.rankings.find({"app_id": app_id}).to_list(length=1000)
+        return [{**ranking, "id": str(ranking["_id"])} for ranking in rankings]
+    except Exception as e:
+        logger.error(f"Error fetching rankings: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Cleanup
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
-
-if __name__ == "__main__":
-    uvicorn.run(app, host="localhost", port=8001)

@@ -1,87 +1,88 @@
-# Play Store Ranking Tracker - Technical Plan
+# Play Store Keyword Ranking Tracker - Technical Plan
 
 ## Problem Analysis & Purpose
-A tool for app developers to track and improve their Google Play Store rankings against competitors without relying on paid services. The application will help developers understand their competitive position and provide actionable insights for ranking improvement.
+A specialized backend system for tracking and analyzing Play Store keyword rankings in the B2B/Kirana space. The system helps marketing teams optimize app visibility through daily rank tracking, keyword discovery, and AI-powered optimization suggestions using Deepseek API.
 
 ## Core Features
-- App & Competitor Management
-  - Add/edit own apps and competitor apps
-  - Track multiple keywords per app
-  - Store historical ranking data
-- Automated Play Store Scraping
-  - Keyword rank tracking
-  - App metadata collection
-  - Smart rate limiting and proxy rotation
-- Ranking Analysis
-  - Historical ranking trends
-  - Competitor comparison
-  - Keyword performance metrics
-- AI-Powered Insights (Standout Feature)
-  - GPT-4 powered analysis of app descriptions
-  - Keyword optimization suggestions
-  - Competitor strategy analysis
-  - Natural language ranking improvement recommendations
+- Daily automated Play Store rank tracking for specified apps (com.badhobuyer, club.kirana, com.udaan.android)
+- Historical ranking data for base keywords (kirana, b2b, wholesale, distributor, fmcg)
+- Smart keyword discovery using app metadata and Deepseek API
+- Keyword performance analytics and traffic potential estimation
+- Multi-user access for marketing team collaboration
+- **Standout Feature**: AI-powered keyword opportunity scoring that combines ranking difficulty, traffic potential, and competitor success patterns
 - Clean, Modern UI
-  - Interactive dashboard
-  - Ranking trend visualizations
-  - Easy-to-use keyword management
+  - Interactive ranking dashboards with trend analysis
+  - Keyword discovery workspace
+  - Team collaboration features
   - Mobile-responsive design
 
 ## Technical Architecture
-This application requires multiple files due to its complexity:
+This application requires a proper directory structure due to its complexity:
 
 Backend:
-- FastAPI for the server
-- Separate modules for scraping, analysis, and AI
-- SQLite for data storage (MVP phase)
+- FastAPI for RESTful APIs
+- PostgreSQL for data persistence
+- APScheduler for daily ranking checks
+- Deepseek v3 API integration
+- Redis for caching and rate limiting
 
 Frontend:
-- React with Material-UI
-- Chart.js for visualizations
-- Responsive grid layout
+- React with Chakra UI for modern, clean interface
+- Recharts for interactive visualizations
+- React Query for efficient data fetching
 
 ## MVP Implementation Strategy
-1. Setup Project Structure (use files_writer)
-   - Initialize FastAPI backend
-   - Create React frontend
-   - Setup basic routing
+1. Initial Setup (use files_writer)
+   - FastAPI project structure
+   - React application scaffold
+   - Database models and migrations
+   - Basic authentication flow
 
-2. Core Data Models (use str_replace_editor)
-   - App model
-   - Keyword model
-   - Ranking history model
-   - Database migrations
+2. Core Backend Features (use str_replace_editor)
+   - Play Store scraping service
+   - Keyword tracking system
+   - Historical data management
+   - Team collaboration API
 
-3. Play Store Scraping Module
-   - Implement basic scraping with rotating user agents
-   - Store ranking data
-   - Rate limiting implementation
+3. Keyword Intelligence (use str_replace_editor)
+   - Deepseek API integration
+   - Keyword discovery algorithm
+   - Traffic potential analysis
+   - Optimization suggestions engine
 
-4. Basic Frontend (use files_writer)
-   - Dashboard layout
-   - App management UI
-   - Keyword tracking interface
+4. Frontend Development (start with files_writer, then str_replace_editor)
+   - Dashboard components
+   - Keyword management interface
+   - Analytics visualizations
+   - Team collaboration features
 
-5. AI Integration (use str_replace_editor)
-   - GPT-4 powered analysis
-   - Ranking improvement suggestions
-   - Competitor analysis
-
-6. Advanced Features
-   - Historical trend analysis
-   - Visualization components
-   - Export functionality
+5. Integration & Polish
+   - API integration testing
+   - UI/UX refinements
+   - Performance optimization
+   - Documentation
 
 ## <Clarification Required>
-1. What is the maximum number of competitor apps to track per user app?
-2. How frequently should rankings be checked? (Affects rate limiting strategy)
-3. OpenAI API key will be required for GPT-4 integration - should users provide their own key?
-4. Should the system support multiple users or is it a single-user tool?
-5. What is the preferred format for ranking improvement suggestions (PDF report, dashboard, email)?
+1. Deepseek API details needed:
+   - API endpoint and documentation
+   - Authentication method
+   - Rate limits and pricing tier
+2. Play Store data requirements:
+   - Maximum scraping frequency allowed
+   - Additional metadata fields to track
+   - Historical data retention period
+3. Team collaboration specifics:
+   - User roles and permissions structure
+   - Notification preferences
+   - Report sharing format
+4. Keyword analysis parameters:
+   - Traffic estimation methodology
+   - Ranking difficulty calculation
+   - Success metrics definition
 
 ## Development Notes
-- Use files_writer for initial setup and basic components (< 100 lines)
-- Switch to str_replace_editor for complex modules and feature additions
-- Implement robust error handling for scraping
-- Focus on UI polish from the start
-- Keep the initial version focused on core ranking tracking
+- Use files_writer for initial setup and components under 100 lines
+- Switch to str_replace_editor for complex features and integrations
+- Implement robust error handling for scraping and API calls
+- Focus on UI polish and user experience from day one
+- Prioritize core ranking tracking and keyword discovery features

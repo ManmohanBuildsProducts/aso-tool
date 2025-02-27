@@ -32,10 +32,13 @@ app.add_middleware(
 health_checker = HealthCheck()
 
 # Mount static files
-# Mount static files only if directory exists
 import os
-if os.path.exists("../frontend/dist/assets"):
-    app.mount("/assets", StaticFiles(directory="../frontend/dist/assets"), name="static")
+
+# Create static directory if it doesn't exist
+os.makedirs("static", exist_ok=True)
+
+# Mount static files
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Include routers
 app.include_router(app_analysis.router, prefix="/api", tags=["App Analysis"])

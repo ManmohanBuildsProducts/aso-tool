@@ -19,7 +19,7 @@ class CompetitorAnalyzer:
             # Get main app details with validation
             main_app = await self._get_app_details_safely(app_id)
             if not main_app:
-                raise Exception(f"Failed to fetch main app details for {app_id}")
+                return self._get_error_response(f"Failed to fetch main app details for {app_id}")
             
             # Get competitor details with validation
             competitor_details = []
@@ -32,45 +32,38 @@ class CompetitorAnalyzer:
                     logger.warning(f"Error fetching competitor {comp_id}: {str(e)}")
                     continue
             
-            if not competitor_details:
-                logger.warning("No valid competitor data found")
-                # Return analysis with only main app data
-                return {
-                    "status": "partial",
+            # Perform analysis even if some competitors failed
+            metrics_comparison = self._compare_metrics(main_app, competitor_details)
+            
+            return {
+                "status": "success",
+                "comparison": {
                     "main_app": {
                         "app_id": app_id,
                         "details": main_app
                     },
-                    "competitors": [],
-                    "metrics_comparison": self._get_default_metrics()
+                    "competitors": [
+                        {"app_id": comp["appId"], "details": comp}
+                        for comp in competitor_details
+                    ],
+                    "metrics_comparison": metrics_comparison
                 }
-
-            # Perform keyword comparison
-            try:
-                keyword_analysis = await self.keyword_analyzer.compare_keywords(app_id, competitor_ids)
-            except Exception as e:
-                logger.error(f"Error in keyword analysis: {str(e)}")
-                keyword_analysis = {"keyword_comparison": {}}
-
-            # Calculate metrics comparison with improved error handling
-            metrics_comparison = self._compare_metrics(main_app, competitor_details)
-
-            return {
-                "status": "success",
-                "main_app": {
-                    "app_id": app_id,
-                    "details": main_app
-                },
-                "competitors": [
-                    {"app_id": comp["appId"], "details": comp}
-                    for comp in competitor_details
-                ],
-                "keyword_analysis": keyword_analysis.get("keyword_comparison", {}),
-                "metrics_comparison": metrics_comparison
             }
         except Exception as e:
             logger.error(f"Error analyzing competitors: {str(e)}")
-            raise
+            return self._get_error_response(str(e))
+
+    def _get_error_response(self, message: str) -> Dict[str, Any]:
+        """Return a standardized error response"""
+        return {
+            "status": "error",
+            "message": message,
+            "comparison": {
+                "main_app": None,
+                "competitors": [],
+                "metrics_comparison": self._get_default_metrics()
+            }
+        }
 
     async def _get_app_details_safely(self, app_id: str) -> Optional[Dict[str, Any]]:
         """
@@ -82,16 +75,15 @@ class CompetitorAnalyzer:
                 return None
 
             # Ensure critical fields have default values
-            details["score"] = self._safe_float(details.get("score")) or 0.0
-            details["reviews"] = self._safe_int(details.get("reviews")) or 0
-            details["minInstalls"] = self._safe_int(details.get("minInstalls")) or 0
-            details["maxInstalls"] = self._safe_int(details.get("maxInstalls")) or details["minInstalls"]
-            details["ratings"] = self._safe_int(details.get("ratings")) or 0
-            
-            # Add timestamp for tracking
-            details["analyzed_at"] = datetime.now().isoformat()
-            
-            return details
+            return {
+                **details,
+                "score": float(details.get("score", 0) or 0),
+                "ratings": int(details.get("ratings", 0) or 0),
+                "reviews": int(details.get("reviews", 0) or 0),
+                "minInstalls": int(details.get("minInstalls", 0) or 0),
+                "maxInstalls": int(details.get("maxInstalls", 0) or details.get("minInstalls", 0) or 0),
+                "analyzed_at": datetime.now().isoformat()
+            }
         except Exception as e:
             logger.error(f"Error fetching app details for {app_id}: {str(e)}")
             return None
@@ -101,7 +93,9 @@ class CompetitorAnalyzer:
         Compare various metrics between main app and competitors with improved error handling
         """
         try:
-            # Calculate basic metrics
+            if not competitors:
+                return self._get_default_metrics()
+
             metrics = {
                 "ratings": self._calculate_rating_metrics(main_app, competitors),
                 "installs": self._calculate_install_metrics(main_app, competitors),
@@ -133,10 +127,10 @@ class CompetitorAnalyzer:
 
     def _calculate_rating_metrics(self, main_app: Dict[str, Any], competitors: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Calculate rating-related metrics"""
-        main_rating = self._safe_float(main_app.get("score")) or 0.0
-        competitor_ratings = [self._safe_float(comp.get("score")) or 0.0 for comp in competitors]
+        main_rating = float(main_app.get("score", 0) or 0)
+        competitor_ratings = [float(comp.get("score", 0) or 0) for comp in competitors]
         
-        avg_competitor_rating = sum(competitor_ratings) / len(competitor_ratings) if competitor_ratings else 0.0
+        avg_competitor_rating = sum(competitor_ratings) / len(competitor_ratings) if competitor_ratings else 0
         
         return {
             "main_app": main_rating,
@@ -148,8 +142,8 @@ class CompetitorAnalyzer:
 
     def _calculate_install_metrics(self, main_app: Dict[str, Any], competitors: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Calculate installation-related metrics"""
-        main_installs = self._safe_int(main_app.get("minInstalls")) or 0
-        competitor_installs = [self._safe_int(comp.get("minInstalls")) or 0 for comp in competitors]
+        main_installs = int(main_app.get("minInstalls", 0) or 0)
+        competitor_installs = [int(comp.get("minInstalls", 0) or 0) for comp in competitors]
         
         avg_competitor_installs = sum(competitor_installs) / len(competitor_installs) if competitor_installs else 0
         
@@ -163,8 +157,8 @@ class CompetitorAnalyzer:
 
     def _calculate_review_metrics(self, main_app: Dict[str, Any], competitors: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Calculate review-related metrics"""
-        main_reviews = self._safe_int(main_app.get("reviews")) or 0
-        competitor_reviews = [self._safe_int(comp.get("reviews")) or 0 for comp in competitors]
+        main_reviews = int(main_app.get("reviews", 0) or 0)
+        competitor_reviews = [int(comp.get("reviews", 0) or 0) for comp in competitors]
         
         avg_competitor_reviews = sum(competitor_reviews) / len(competitor_reviews) if competitor_reviews else 0
         
@@ -179,8 +173,8 @@ class CompetitorAnalyzer:
     def _calculate_engagement_metrics(self, main_app: Dict[str, Any], competitors: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Calculate engagement metrics"""
         def calc_engagement(app: Dict[str, Any]) -> float:
-            reviews = self._safe_int(app.get("reviews")) or 0
-            installs = self._safe_int(app.get("minInstalls")) or 1  # Avoid division by zero
+            reviews = int(app.get("reviews", 0) or 0)
+            installs = int(app.get("minInstalls", 1) or 1)  # Avoid division by zero
             return (reviews / installs) * 100 if installs > 0 else 0
 
         main_engagement = calc_engagement(main_app)
@@ -199,16 +193,16 @@ class CompetitorAnalyzer:
         """Calculate overall market position"""
         metrics = {
             "rating_percentile": self._calculate_percentile(
-                self._safe_float(main_app.get("score")) or 0.0,
-                [self._safe_float(comp.get("score")) or 0.0 for comp in competitors]
+                float(main_app.get("score", 0) or 0),
+                [float(comp.get("score", 0) or 0) for comp in competitors]
             ),
             "installs_percentile": self._calculate_percentile(
-                self._safe_int(main_app.get("minInstalls")) or 0,
-                [self._safe_int(comp.get("minInstalls")) or 0 for comp in competitors]
+                int(main_app.get("minInstalls", 0) or 0),
+                [int(comp.get("minInstalls", 0) or 0) for comp in competitors]
             ),
             "reviews_percentile": self._calculate_percentile(
-                self._safe_int(main_app.get("reviews")) or 0,
-                [self._safe_int(comp.get("reviews")) or 0 for comp in competitors]
+                int(main_app.get("reviews", 0) or 0),
+                [int(comp.get("reviews", 0) or 0) for comp in competitors]
             )
         }
         
@@ -232,7 +226,7 @@ class CompetitorAnalyzer:
                 "status": "neutral"
             }
 
-        percentage_change = ((current_value - comparison_value) / comparison_value) * 100
+        percentage_change = ((current_value - comparison_value) / comparison_value) * 100 if comparison_value > 0 else 0
         
         return {
             "direction": "increasing" if percentage_change > 0 else "decreasing" if percentage_change < 0 else "stable",
@@ -306,19 +300,3 @@ class CompetitorAnalyzer:
                 "review_trend": {"direction": "stable", "percentage_change": 0, "status": "neutral"}
             }
         }
-
-    @staticmethod
-    def _safe_float(value: Any) -> Optional[float]:
-        """Safely convert value to float"""
-        try:
-            return float(value) if value is not None else None
-        except (ValueError, TypeError):
-            return None
-
-    @staticmethod
-    def _safe_int(value: Any) -> Optional[int]:
-        """Safely convert value to integer"""
-        try:
-            return int(value) if value is not None else None
-        except (ValueError, TypeError):
-            return None

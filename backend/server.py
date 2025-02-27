@@ -68,12 +68,16 @@ from .aso_analyzer import ASOAnalyzer
 from .scheduler import RankingScheduler
 from .keyword_analyzer import KeywordAnalyzer
 from .deepseek_analyzer import DeepseekAnalyzer
+from .ranking_analyzer import RankingAnalyzer
+from .metadata_optimizer import MetadataOptimizer
 
 # Initialize components
+deepseek_analyzer = DeepseekAnalyzer("sk-340de15952f44634804e7ae35af95cd2")
 aso_analyzer = ASOAnalyzer(db)
 ranking_scheduler = RankingScheduler(db)
 keyword_analyzer = KeywordAnalyzer(db)
-deepseek_analyzer = DeepseekAnalyzer("sk-340de15952f44634804e7ae35af95cd2")
+ranking_analyzer = RankingAnalyzer(db, deepseek_analyzer)
+metadata_optimizer = MetadataOptimizer(db, deepseek_analyzer)
 
 @app.on_event("startup")
 async def startup_event():
@@ -171,7 +175,7 @@ async def ai_analyze_app(app_id: str):
     """Get AI-powered app analysis"""
     try:
         # Get app data
-        app = await db.apps.find_one({"_id": app_id})
+        app = await db.apps.find_one({"package_name": app_id})
         if not app:
             raise HTTPException(status_code=404, detail="App not found")
             
@@ -216,7 +220,7 @@ async def ai_optimize_description(
 ):
     """Optimize app description using AI"""
     try:
-        app = await db.apps.find_one({"_id": app_id})
+        app = await db.apps.find_one({"package_name": app_id})
         if not app:
             raise HTTPException(status_code=404, detail="App not found")
             
@@ -235,7 +239,7 @@ async def ai_optimize_description(
 async def analyze_competitors(app_id: str):
     """Get competitor analysis for an app"""
     try:
-        app = await db.apps.find_one({"_id": app_id})
+        app = await db.apps.find_one({"package_name": app_id})
         if not app:
             raise HTTPException(status_code=404, detail="App not found")
             

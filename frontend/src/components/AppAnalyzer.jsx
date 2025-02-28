@@ -29,7 +29,7 @@ const AppAnalyzer = () => {
       if (result.error) {
         throw new Error(result.error);
       }
-      setTaskId(result.job_id);
+      setTaskId(result.task_id); // Changed from job_id to task_id
       setIsAnalyzing(true);
       return result;
     },
@@ -171,11 +171,11 @@ const AppAnalyzer = () => {
         <button
           type="submit"
           className={`inline-flex justify-center rounded-md border border-transparent py-2 px-4 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-            isAnalyzing || isLoading || isTaskLoading
+            isAnalyzing || isLoading || isJobLoading
               ? 'bg-indigo-400 cursor-not-allowed'
               : 'bg-indigo-600 hover:bg-indigo-700'
           }`}
-          disabled={isAnalyzing || isLoading || isTaskLoading}
+          disabled={isAnalyzing || isLoading || isJobLoading}
         >
           {isAnalyzing ? (
             <span className="flex items-center">
@@ -185,7 +185,7 @@ const AppAnalyzer = () => {
               </svg>
               Analyzing...
             </span>
-          ) : isLoading || isTaskLoading ? (
+          ) : isLoading || isJobLoading ? (
             'Starting analysis...'
           ) : (
             'Analyze'
@@ -315,7 +315,7 @@ const AppAnalyzer = () => {
             </div>
           </div>
 
-          {data.analysis?.analysis && (
+          {data.analysis && (
             <div>
               <h3 className="text-lg font-medium text-gray-900">Analysis</h3>
               <div className="mt-2 p-4 bg-gray-100 rounded-md">
@@ -323,25 +323,25 @@ const AppAnalyzer = () => {
                   <div>
                     <dt className="text-sm font-medium text-gray-500">Title Analysis</dt>
                     <dd className="mt-1 text-sm text-gray-900">
-                      {data.analysis.analysis.title_analysis || 'N/A'}
+                      {data.analysis.title_analysis || 'N/A'}
                     </dd>
                   </div>
                   <div>
                     <dt className="text-sm font-medium text-gray-500">Description Analysis</dt>
                     <dd className="mt-1 text-sm text-gray-900">
-                      {data.analysis.analysis.description_analysis || 'N/A'}
+                      {data.analysis.description_analysis || 'N/A'}
                     </dd>
                   </div>
                   <div>
                     <dt className="text-sm font-medium text-gray-500">Keyword Opportunities</dt>
                     <dd className="mt-1 text-sm text-gray-900">
-                      {data.analysis.analysis.keyword_opportunities || 'N/A'}
+                      {data.analysis.keyword_opportunities || 'N/A'}
                     </dd>
                   </div>
                   <div>
                     <dt className="text-sm font-medium text-gray-500">Recommendations</dt>
                     <dd className="mt-1 text-sm text-gray-900">
-                      {data.analysis.analysis.recommendations || 'N/A'}
+                      {data.analysis.recommendations || 'N/A'}
                     </dd>
                   </div>
                 </dl>
@@ -349,7 +349,7 @@ const AppAnalyzer = () => {
             </div>
           )}
 
-          {data.competitor_analysis?.analysis && (
+          {data.competitor_analysis && (
             <div>
               <h3 className="text-lg font-medium text-gray-900">Competitor Analysis</h3>
               <div className="mt-2 p-4 bg-gray-100 rounded-md">
@@ -357,131 +357,25 @@ const AppAnalyzer = () => {
                   <div>
                     <dt className="text-sm font-medium text-gray-500">Competitive Analysis</dt>
                     <dd className="mt-1 text-sm text-gray-900">
-                      {data.competitor_analysis.analysis.competitive_analysis || 'N/A'}
+                      {data.competitor_analysis.competitive_analysis || 'N/A'}
                     </dd>
                   </div>
                   <div>
                     <dt className="text-sm font-medium text-gray-500">Keyword Comparison</dt>
                     <dd className="mt-1 text-sm text-gray-900">
-                      {data.competitor_analysis.analysis.keyword_comparison || 'N/A'}
+                      {data.competitor_analysis.keyword_comparison || 'N/A'}
                     </dd>
                   </div>
                   <div>
                     <dt className="text-sm font-medium text-gray-500">Description Comparison</dt>
                     <dd className="mt-1 text-sm text-gray-900">
-                      {data.competitor_analysis.analysis.description_comparison || 'N/A'}
+                      {data.competitor_analysis.description_comparison || 'N/A'}
                     </dd>
                   </div>
                   <div>
                     <dt className="text-sm font-medium text-gray-500">Market Position</dt>
                     <dd className="mt-1 text-sm text-gray-900">
-                      {data.competitor_analysis.analysis.market_position || 'N/A'}
-                    </dd>
-                  </div>
-                </dl>
-              </div>
-            </div>
-          )}
-
-          {data.keyword_suggestions?.suggestions && (
-            <div>
-              <h3 className="text-lg font-medium text-gray-900">Keyword Suggestions</h3>
-              <div className="mt-2 p-4 bg-gray-100 rounded-md">
-                <dl className="space-y-4">
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500">Related Keywords</dt>
-                    <dd className="mt-1 text-sm text-gray-900">
-                      {Array.isArray(data.keyword_suggestions.suggestions.related_keywords)
-                        ? data.keyword_suggestions.suggestions.related_keywords.join(', ')
-                        : data.keyword_suggestions.suggestions.related_keywords || 'N/A'}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500">Long-tail Keywords</dt>
-                    <dd className="mt-1 text-sm text-gray-900">
-                      {Array.isArray(data.keyword_suggestions.suggestions.long_tail_keywords)
-                        ? data.keyword_suggestions.suggestions.long_tail_keywords.join(', ')
-                        : data.keyword_suggestions.suggestions.long_tail_keywords || 'N/A'}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500">Volume Estimates</dt>
-                    <dd className="mt-1 text-sm text-gray-900">
-                      {data.keyword_suggestions.suggestions.volume_estimates || 'N/A'}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500">Competition Levels</dt>
-                    <dd className="mt-1 text-sm text-gray-900">
-                      {data.keyword_suggestions.suggestions.competition_levels || 'N/A'}
-                    </dd>
-                  </div>
-                </dl>
-              </div>
-            </div>
-          )}
-
-          {data.market_trends?.trends && (
-            <div>
-              <h3 className="text-lg font-medium text-gray-900">Market Trends</h3>
-              <div className="mt-2 p-4 bg-gray-100 rounded-md">
-                <dl className="space-y-4">
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500">Market Trends</dt>
-                    <dd className="mt-1 text-sm text-gray-900">
-                      {data.market_trends.trends.market_trends || 'N/A'}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500">User Expectations</dt>
-                    <dd className="mt-1 text-sm text-gray-900">
-                      {data.market_trends.trends.user_expectations || 'N/A'}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500">Growth Opportunities</dt>
-                    <dd className="mt-1 text-sm text-gray-900">
-                      {data.market_trends.trends.growth_opportunities || 'N/A'}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500">Challenges</dt>
-                    <dd className="mt-1 text-sm text-gray-900">
-                      {data.market_trends.trends.challenges || 'N/A'}
-                    </dd>
-                  </div>
-                </dl>
-              </div>
-            </div>
-          )}
-
-          {data.description_optimization?.optimization && (
-            <div>
-              <h3 className="text-lg font-medium text-gray-900">Description Optimization</h3>
-              <div className="mt-2 p-4 bg-gray-100 rounded-md">
-                <dl className="space-y-4">
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500">Optimized Description</dt>
-                    <dd className="mt-1 text-sm text-gray-900 whitespace-pre-wrap">
-                      {data.description_optimization.optimization.optimized_description || 'N/A'}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500">Keyword Analysis</dt>
-                    <dd className="mt-1 text-sm text-gray-900">
-                      {data.description_optimization.optimization.keyword_analysis || 'N/A'}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500">Readability Score</dt>
-                    <dd className="mt-1 text-sm text-gray-900">
-                      {data.description_optimization.optimization.readability_score || 'N/A'}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500">Suggestions</dt>
-                    <dd className="mt-1 text-sm text-gray-900">
-                      {data.description_optimization.optimization.suggestions || 'N/A'}
+                      {data.competitor_analysis.market_position || 'N/A'}
                     </dd>
                   </div>
                 </dl>

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, BackgroundTasks
+from fastapi import FastAPI, BackgroundTasks, HTTPException
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -6,14 +6,124 @@ import uvicorn
 import os
 import logging
 from pathlib import Path
-from typing import Dict, List, Optional
-from pydantic import BaseModel
+from typing import Dict, List, Optional, Any
+from pydantic import BaseModel, Field
 from datetime import datetime, timedelta
 import sys
 import asyncio
 from uuid import uuid4
 import json
 from bson import ObjectId
+from enum import Enum
+import aiohttp
+from asyncio import TimeoutError
+import time
+from functools import wraps
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+# Constants
+RATE_LIMIT_REQUESTS = 10  # Number of requests allowed
+RATE_LIMIT_WINDOW = 60    # Time window in seconds
+JOB_TIMEOUT = 300        # Job timeout in seconds
+CACHE_DURATION = 24 * 60 * 60  # Cache duration in seconds (24 hours)
+
+# Rate limiting state
+rate_limit_state = {
+    "requests": [],
+    "last_cleanup": time.time()
+}
+
+def rate_limit():
+    """Rate limiting decorator"""
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            current_time = time.time()
+            
+            # Cleanup old requests
+            if current_time - rate_limit_state["last_cleanup"] > RATE_LIMIT_WINDOW:
+                rate_limit_state["requests"] = [
+                    t for t in rate_limit_state["requests"]
+                    if current_time - t < RATE_LIMIT_WINDOW
+                ]
+                rate_limit_state["last_cleanup"] = current_time
+            
+            # Check rate limit
+            if len(rate_limit_state["requests"]) >= RATE_LIMIT_REQUESTS:
+                oldest_request = min(rate_limit_state["requests"])
+                if current_time - oldest_request < RATE_LIMIT_WINDOW:
+                    wait_time = RATE_LIMIT_WINDOW - (current_time - oldest_request)
+                    raise HTTPException(
+                        status_code=429,
+                        detail=f"Rate limit exceeded. Please wait {int(wait_time)} seconds."
+                    )
+            
+            # Add current request
+            rate_limit_state["requests"].append(current_time)
+            
+            return await func(*args, **kwargs)
+        return wrapper
+    return decorator
+
+async def cache_result(key: str, data: Any, db: AsyncIOMotorClient):
+    """Cache result in MongoDB"""
+    try:
+        await db.cache.update_one(
+            {"key": key},
+            {
+                "$set": {
+                    "data": data,
+                    "timestamp": datetime.utcnow()
+                }
+            },
+            upsert=True
+        )
+    except Exception as e:
+        logger.error(f"Error caching result: {e}")
+
+async def get_cached_result(key: str, db: AsyncIOMotorClient) -> Optional[Any]:
+    """Get cached result from MongoDB"""
+    try:
+        result = await db.cache.find_one({
+            "key": key,
+            "timestamp": {
+                "$gte": datetime.utcnow() - timedelta(seconds=CACHE_DURATION)
+            }
+        })
+        return result["data"] if result else None
+    except Exception as e:
+        logger.error(f"Error getting cached result: {e}")
+        return None
+
+class JobStatus(str, Enum):
+    """Job status enum"""
+    PENDING = "pending"
+    PROCESSING = "processing"
+    COMPLETED = "completed"
+    ERROR = "error"
+    TIMEOUT = "timeout"
+
+class JobResponse(BaseModel):
+    """Job response model"""
+    job_id: str
+    status: JobStatus
+    progress: Optional[int] = 0
+    data: Optional[Dict] = None
+    error: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+
+class AnalysisRequest(BaseModel):
+    """Analysis request model"""
+    package_name: str
+    competitor_package_names: Optional[List[str]] = Field(default_factory=list)
+    keywords: Optional[List[str]] = Field(default_factory=list)
 
 # Configure logging
 logging.basicConfig(

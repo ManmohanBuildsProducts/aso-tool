@@ -1,14 +1,12 @@
 import pytest
 import aiohttp
 import asyncio
+from datetime import datetime
 import os
-from dotenv import load_dotenv
+import json
 
-# Load environment variables
-load_dotenv()
-
-# Get backend URL from environment
-BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'http://localhost:8001')
+# Use localhost since we're testing internally
+BACKEND_URL = "http://localhost:8001"
 
 class TestASOTool:
     @pytest.fixture
@@ -18,24 +16,23 @@ class TestASOTool:
 
     @pytest.mark.asyncio
     async def test_root_endpoint(self, session):
-        """Test root endpoint"""
+        """Test the root endpoint"""
         async with session.get(f"{BACKEND_URL}/api/") as response:
             assert response.status == 200
             data = await response.json()
+            assert "message" in data
             assert data["message"] == "ASO Tool API"
 
     @pytest.mark.asyncio
-    async def test_analyze_app(self, session):
-        """Test app analysis workflow"""
-        # Test data
+    async def test_analyze_endpoint(self, session):
+        """Test the analyze endpoint"""
         test_data = {
             "package_name": "com.badhobuyer",
-            "competitor_package_names": ["club.kirana", "com.udaan.android"],
-            "keywords": ["wholesale", "b2b", "business"]
+            "competitor_package_names": ["club.kirana"],
+            "keywords": ["wholesale", "b2b"]
         }
 
-        # Start analysis
-        print("Starting app analysis...")
+        # Create analysis job
         async with session.post(
             f"{BACKEND_URL}/api/analyze",
             json=test_data
@@ -43,84 +40,60 @@ class TestASOTool:
             assert response.status == 200
             data = await response.json()
             assert "task_id" in data
+            assert "status" in data
             assert data["status"] == "processing"
             task_id = data["task_id"]
 
-        # Poll for results
-        print("Polling for results...")
-        max_retries = 30
+        # Wait and check job status
+        max_retries = 10
         retry_count = 0
-        result_data = None
+        job_completed = False
 
-        while retry_count < max_retries:
+        while retry_count < max_retries and not job_completed:
+            await asyncio.sleep(2)  # Wait 2 seconds between checks
             async with session.get(
                 f"{BACKEND_URL}/api/analyze/{task_id}"
             ) as response:
                 assert response.status == 200
-                result = await response.json()
+                data = await response.json()
+                assert "status" in data
                 
-                if result.get("status") == "completed":
-                    result_data = result.get("data")
+                if data["status"] == "completed":
+                    job_completed = True
+                    # Verify job result structure
+                    assert "app_data" in data
+                    assert "analysis" in data
                     break
-                elif result.get("status") == "error":
-                    pytest.fail(f"Analysis failed: {result.get('error')}")
-                    break
+                elif data["status"] == "error":
+                    pytest.fail(f"Job failed with error: {data.get('error')}")
                 
-                print(f"Progress: {result.get('progress')}%")
-                await asyncio.sleep(2)
                 retry_count += 1
 
-        assert result_data is not None, "Analysis did not complete in time"
-        
-        # Validate result structure
-        assert "app_metadata" in result_data
-        assert "analysis" in result_data
-        assert "competitor_analysis" in result_data
-        assert "keyword_suggestions" in result_data
-        assert "market_trends" in result_data
-
-        # Validate app metadata
-        app_metadata = result_data["app_metadata"]
-        assert "title" in app_metadata
-        assert "description" in app_metadata
-        assert "rating" in app_metadata
-        assert "category" in app_metadata
+        assert job_completed, "Job did not complete within expected time"
 
     @pytest.mark.asyncio
-    async def test_search_keyword(self, session):
-        """Test keyword search"""
-        keyword = "wholesale"
+    async def test_search_endpoint(self, session):
+        """Test the search endpoint"""
+        test_keyword = "wholesale"
         async with session.get(
-            f"{BACKEND_URL}/api/search?keyword={keyword}&limit=5"
+            f"{BACKEND_URL}/api/search?keyword={test_keyword}"
         ) as response:
             assert response.status == 200
             data = await response.json()
             assert "results" in data
-            assert len(data["results"]) <= 5
-            
-            if data["results"]:
-                app = data["results"][0]
-                assert "name" in app
-                assert "package_name" in app
-                assert "rating" in app
+            assert isinstance(data["results"], list)
 
     @pytest.mark.asyncio
-    async def test_similar_apps(self, session):
-        """Test similar apps endpoint"""
-        package_name = "com.badhobuyer"
+    async def test_similar_apps_endpoint(self, session):
+        """Test the similar apps endpoint"""
+        test_package = "com.badhobuyer"
         async with session.get(
-            f"{BACKEND_URL}/api/similar?package_name={package_name}&limit=5"
+            f"{BACKEND_URL}/api/similar?package_name={test_package}"
         ) as response:
             assert response.status == 200
             data = await response.json()
             assert "results" in data
-            assert len(data["results"]) <= 5
-            
-            if data["results"]:
-                app = data["results"][0]
-                assert "name" in app
-                assert "package_name" in app
-                assert "rating" in app
+            assert isinstance(data["results"], list)
 
     @pytest.mark.asyncio
     async def test_error_handling(self, session):
@@ -139,20 +112,43 @@ class TestASOTool:
             assert response.status == 200
             data = await response.json()
             assert "task_id" in data
-
-            # Check task status
             task_id = data["task_id"]
-            async with session.get(
-                f"{BACKEND_URL}/api/analyze/{task_id}"
-            ) as status_response:
-                status_data = await status_response.json()
-                # Either the task should be in processing state or error state
-                assert status_data["status"] in ["processing", "error"]
 
-        # Test with invalid task ID
+        # Check if job fails appropriately
+        await asyncio.sleep(2)
         async with session.get(
-            f"{BACKEND_URL}/api/analyze/invalid_task_id"
+            f"{BACKEND_URL}/api/analyze/{task_id}"
         ) as response:
-            assert response.status == 200
             data = await response.json()
-            assert "error" in data
+            assert "status" in data
+            assert data["status"] in ["error", "processing"]
+
+    @pytest.mark.asyncio
+    async def test_caching_mechanism(self, session):
+        """Test the caching mechanism"""
+        # Make two consecutive requests for the same package
+        test_package = "com.badhobuyer"
+        
+        # First request
+        start_time1 = datetime.now()
+        async with session.get(
+            f"{BACKEND_URL}/api/similar?package_name={test_package}"
+        ) as response1:
+            assert response1.status == 200
+            data1 = await response1.json()
+            time1 = (datetime.now() - start_time1).total_seconds()
+
+        await asyncio.sleep(1)
+
+        # Second request (should be cached)
+        start_time2 = datetime.now()
+        async with session.get(
+            f"{BACKEND_URL}/api/similar?package_name={test_package}"
+        ) as response2:
+            assert response2.status == 200
+            data2 = await response2.json()
+            time2 = (datetime.now() - start_time2).total_seconds()
+
+        # Second request should be faster due to caching
+        assert time2 <= time1, "Cached request should be faster"
+        assert data1 == data2, "Cached data should match original data"

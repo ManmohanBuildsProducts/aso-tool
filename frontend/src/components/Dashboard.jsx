@@ -72,19 +72,19 @@ const Dashboard = ({ appId }) => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="dashboard-container">
       {/* Top Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2" data-testid="aso-score-section">
           <ASOScoreCard data={appData} />
         </div>
-        <div>
+        <div data-testid="competitor-section">
           <CompetitorAnalysis data={competitorData} />
         </div>
       </div>
 
       {/* Bottom Row */}
-      <div>
+      <div data-testid="keyword-section">
         <KeywordTable data={keywordData} />
       </div>
     </div>

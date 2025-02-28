@@ -1,17 +1,25 @@
 import aiohttp
 import json
 import logging
+import os
 from typing import Dict, List, Optional
 import asyncio
 
 logger = logging.getLogger(__name__)
 
 class DeepseekAnalyzer:
-    def __init__(self, api_key: str):
-        self.api_key = api_key
-        self.base_url = "https://api.deepseek.com/v1/chat/completions"
+    def __init__(self, api_key: str = None):
+        """Initialize DeepSeek analyzer with API key
+        Args:
+            api_key (str, optional): DeepSeek API key. If not provided, will try to get from environment
+        """
+        self.api_key = api_key or os.environ.get('DEEPSEEK_API_KEY')
+        if not self.api_key:
+            raise ValueError("DeepSeek API key must be provided either directly or via DEEPSEEK_API_KEY environment variable")
+            
+        self.base_url = "https://api.deepseek.com/chat/completion"  # Updated endpoint
         self.headers = {
-            "Authorization": f"Bearer {api_key}",
+            "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"
         }
 
@@ -20,10 +28,11 @@ class DeepseekAnalyzer:
         try:
             async with aiohttp.ClientSession() as session:
                 payload = {
-                    "model": "deepseek-chat",
+                    "model": "deepseek-chat-v1",  # Updated model name
                     "messages": messages,
                     "temperature": 0.7,
                     "max_tokens": 2000,
+                    "stream": False,
                     "response_format": { "type": "json_object" }
                 }
                 

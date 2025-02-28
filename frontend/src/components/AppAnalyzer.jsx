@@ -8,7 +8,7 @@ const AppAnalyzer = () => {
     keywords: ['wholesale', 'b2b', 'business']
   });
 
-  const { data, isLoading, error } = useQuery(
+  const { data, isLoading, error, refetch } = useQuery(
     ['analyze', appData],
     async () => {
       const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/analyze`, {

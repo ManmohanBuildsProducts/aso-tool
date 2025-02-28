@@ -1,6 +1,7 @@
 import pytest
 import requests
 import json
+import os
 from datetime import datetime
 
 class ASOAPITester:
@@ -73,8 +74,11 @@ class ASOAPITester:
         )
 
 def main():
-    # Use localhost with backend port
-    backend_url = "http://localhost:8001"
+    # Use environment variable for backend URL
+    backend_url = os.environ.get('REACT_APP_BACKEND_URL', 'http://localhost:8001')
+    if not backend_url:
+        print("❌ REACT_APP_BACKEND_URL environment variable not set")
+        return 1
     
     print(f"🔗 Using backend URL: {backend_url}")
     

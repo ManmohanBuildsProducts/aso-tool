@@ -331,3 +331,11 @@ INFO:     127.0.0.1:45594 - "GET /api/analyze/9e0511aa-b74d-45f9-979a-fd01ba19a8
 2025-02-28 12:59:26,910 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
 INFO:     127.0.0.1:59734 - "GET /api/ HTTP/1.1" 200 OK
 2025-02-28 12:59:32,525 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 12:59:54,480 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 12:59:54,480 - aso_tool.external_integrations.deepseek_analyzer - ERROR - Error parsing JSON response: Expecting value: line 1 column 1 (char 0)
+2025-02-28 12:59:54,488 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 12:59:54,488 - aso_tool.external_integrations.deepseek_analyzer - ERROR - Error parsing JSON response: Expecting value: line 1 column 1 (char 0)
+2025-02-28 12:59:54,700 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 12:59:54,772 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 12:59:54,772 - aso_tool.external_integrations.deepseek_analyzer - ERROR - Error parsing JSON response: Expecting value: line 1 column 1 (char 0)
+INFO:     127.0.0.1:44770 - "GET /api/ HTTP/1.1" 200 OK

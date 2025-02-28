@@ -1,6 +1,6 @@
 import React from 'react';
 import { useQuery } from 'react-query';
-import { fetchAppAnalysis, fetchKeywordAnalysis, fetchCompetitorImpact } from '../services/api';
+import { fetchAppAnalysis, fetchKeywordAnalysis, fetchCompetitorAnalysis } from '../services/api';
 import ASOScoreCard from './dashboard/ASOScoreCard';
 import KeywordTable from './dashboard/KeywordTable';
 import CompetitorAnalysis from './dashboard/CompetitorAnalysis';
@@ -41,7 +41,13 @@ const Dashboard = ({ appId }) => {
     error: competitorError
   } = useQuery(
     ['competitorAnalysis', appId],
-    () => fetchCompetitorImpact(appId, []),
+    () => fetchCompetitorAnalysis(
+      { name: "BadhoBuyer", category: "Business" },
+      [
+        { name: "Kirana Club", category: "Business" },
+        { name: "Udaan", category: "Business" }
+      ]
+    ),
     {
       staleTime: 5 * 60 * 1000
     }

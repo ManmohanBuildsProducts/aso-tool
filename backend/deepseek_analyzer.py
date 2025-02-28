@@ -4,20 +4,29 @@ import logging
 import os
 from typing import Dict, List, Optional
 import asyncio
+from pathlib import Path
+from dotenv import load_dotenv
+from .utils.key_manager import decrypt_api_key
+
+# Load environment variables
+load_dotenv()
 
 logger = logging.getLogger(__name__)
 
 class DeepseekAnalyzer:
-    def __init__(self, api_key: str = None):
-        """Initialize DeepSeek analyzer with API key
-        Args:
-            api_key (str, optional): DeepSeek API key. If not provided, will try to get from environment
-        """
-        self.api_key = api_key or os.environ.get('DEEPSEEK_API_KEY')
-        if not self.api_key:
-            raise ValueError("DeepSeek API key must be provided either directly or via DEEPSEEK_API_KEY environment variable")
+    def __init__(self):
+        """Initialize DeepSeek analyzer with encrypted API key"""
+        encrypted_key = os.environ.get('DEEPSEEK_API_KEY_ENCRYPTED')
+        encryption_key = os.environ.get('ENCRYPTION_KEY')
+        
+        if not encrypted_key or not encryption_key:
+            raise ValueError("DeepSeek API key encryption settings not found in environment")
             
-        self.base_url = "https://api.deepseek.com/chat/completion"  # Updated endpoint
+        self.api_key = decrypt_api_key(encrypted_key, encryption_key.encode())
+        if not self.api_key:
+            raise ValueError("Failed to decrypt DeepSeek API key")
+            
+        self.base_url = "https://api.deepseek.com/v1/chat/completions"
         self.headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"
@@ -28,15 +37,14 @@ class DeepseekAnalyzer:
         try:
             async with aiohttp.ClientSession() as session:
                 payload = {
-                    "model": "deepseek-chat-v1",  # Updated model name
+                    "model": "deepseek-chat",
                     "messages": messages,
                     "temperature": 0.7,
                     "max_tokens": 2000,
-                    "stream": False,
                     "response_format": { "type": "json_object" }
                 }
                 
-                logger.info(f"Making request to Deepseek API with payload: {json.dumps(payload)}")
+                logger.info("Making request to Deepseek API")
                 
                 async with session.post(
                     self.base_url,
@@ -44,7 +52,7 @@ class DeepseekAnalyzer:
                     json=payload
                 ) as response:
                     response_text = await response.text()
-                    logger.info(f"Deepseek API response: {response_text}")
+                    logger.info(f"Deepseek API status code: {response.status}")
                     
                     if response.status == 200:
                         try:
@@ -62,7 +70,7 @@ class DeepseekAnalyzer:
                         except json.JSONDecodeError as e:
                             logger.error(f"Error parsing JSON response: {e}")
                             return {
-                                "analysis": self._parse_markdown_response(content),
+                                "analysis": self._parse_markdown_response(response_text),
                                 "format": "markdown"
                             }
                     else:
@@ -99,19 +107,77 @@ class DeepseekAnalyzer:
             if current_section:
                 sections[current_section] = '\n'.join(current_content).strip()
             
-            return {
-                "analysis": sections,
-                "format": "markdown"
-            }
+            return sections
             
         except Exception as e:
             logger.error(f"Error parsing markdown: {e}")
             return {"error": "Failed to parse response"}
 
+    async def analyze_app_metadata(self, app_metadata: Dict, competitor_metadata: List[Dict] = None) -> Dict:
+        """Analyze app metadata and provide ASO recommendations"""
+        if not competitor_metadata:
+            competitor_metadata = []
+            
+        try:
+            prompt = f"""As an ASO expert for B2B and wholesale apps, analyze this app metadata and provide recommendations in this exact JSON format:
+{{
+    "title_analysis": {{
+        "current_score": 85,
+        "suggestions": [
+            "suggestion 1",
+            "suggestion 2"
+        ],
+        "keywords_missing": [
+            "keyword 1",
+            "keyword 2"
+        ]
+    }},
+    "description_analysis": {{
+        "current_score": 75,
+        "structure_issues": [
+            "issue 1",
+            "issue 2"
+        ],
+        "content_gaps": [
+            "gap 1",
+            "gap 2"
+        ]
+    }},
+    "keyword_opportunities": [
+        {{
+            "keyword": "opportunity keyword",
+            "relevance": 0.9,
+            "competition": "medium",
+            "priority": "high"
+        }}
+    ],
+    "recommendations": [
+        "recommendation 1",
+        "recommendation 2"
+    ]
+}}
+
+App Metadata:
+{json.dumps(app_metadata, indent=2)}
+
+Focus on B2B wholesale domain best practices. Ensure the response is valid JSON."""
+
+            messages = [
+                {"role": "system", "content": "You are an expert ASO analyst specializing in B2B and wholesale applications."},
+                {"role": "user", "content": prompt}
+            ]
+
+            return await self._make_request(messages)
+            
+        except Exception as e:
+            logger.error(f"Error analyzing metadata: {e}")
+            return {"error": str(e)}
+
     async def analyze_competitor_metadata(self, app_metadata: Dict, competitor_metadata: List[Dict] = None) -> Dict:
         """Analyze competitor metadata and provide insights"""
         if not competitor_metadata:
             competitor_metadata = []
+            
         try:
             prompt = f"""As an ASO expert for B2B and wholesale apps, analyze this competitive landscape and provide insights in this exact JSON format:
 {{
@@ -172,63 +238,6 @@ Focus on B2B wholesale domain best practices. Ensure the response is valid JSON.
             logger.error(f"Error analyzing competitor metadata: {e}")
             return {"error": str(e)}
 
-    async def analyze_app_metadata(self, app_metadata: Dict, competitor_metadata: List[Dict]) -> Dict:
-        """Analyze app metadata and provide ASO recommendations"""
-        try:
-            prompt = f"""As an ASO expert for B2B and wholesale apps, analyze this app metadata and provide recommendations in this exact JSON format:
-{{
-    "title_analysis": {{
-        "current_score": 85,
-        "suggestions": [
-            "suggestion 1",
-            "suggestion 2"
-        ],
-        "keywords_missing": [
-            "keyword 1",
-            "keyword 2"
-        ]
-    }},
-    "description_analysis": {{
-        "current_score": 75,
-        "structure_issues": [
-            "issue 1",
-            "issue 2"
-        ],
-        "content_gaps": [
-            "gap 1",
-            "gap 2"
-        ]
-    }},
-    "keyword_opportunities": [
-        {{
-            "keyword": "opportunity keyword",
-            "relevance": 0.9,
-            "competition": "medium",
-            "priority": "high"
-        }}
-    ],
-    "recommendations": [
-        "recommendation 1",
-        "recommendation 2"
-    ]
-}}
-
-App Metadata:
-{json.dumps(app_metadata, indent=2)}
-
-Focus on B2B wholesale domain best practices. Ensure the response is valid JSON."""
-
-            messages = [
-                {"role": "system", "content": "You are an expert ASO analyst specializing in B2B and wholesale applications."},
-                {"role": "user", "content": prompt}
-            ]
-
-            return await self._make_request(messages)
-            
-        except Exception as e:
-            logger.error(f"Error analyzing metadata: {e}")
-            return {"error": str(e)}
-
     async def generate_keyword_suggestions(self, base_keyword: str, industry: str = "B2B wholesale") -> Dict:
         """Generate keyword suggestions using AI analysis"""
         try:
@@ -270,19 +279,36 @@ Focus on B2B and wholesale industry patterns. Ensure the response is valid JSON.
     async def analyze_market_trends(self, category: str = "B2B wholesale") -> Dict:
         """Analyze market trends and provide insights"""
         try:
-            prompt = f"""As a market analyst for {category} apps, provide detailed trend analysis:
+            prompt = f"""As a market analyst for {category} apps, provide detailed trend analysis in this exact JSON format:
+{{
+    "market_trends": [
+        {{
+            "trend": "trend description",
+            "impact": "high/medium/low",
+            "timeframe": "short/medium/long term"
+        }}
+    ],
+    "user_preferences": [
+        {{
+            "feature": "feature name",
+            "importance": "high/medium/low",
+            "adoption_rate": "percentage"
+        }}
+    ],
+    "monetization_insights": [
+        {{
+            "strategy": "strategy name",
+            "effectiveness": "high/medium/low",
+            "market_share": "percentage"
+        }}
+    ],
+    "recommendations": [
+        "recommendation 1",
+        "recommendation 2"
+    ]
+}}
 
-Analyze current trends in these sections:
-1. User Acquisition Trends
-2. Feature Preferences
-3. Monetization Patterns
-4. User Engagement
-5. Competition Landscape
-6. Growth Opportunities
-7. Industry Challenges
-8. Future Predictions
-
-Format your response in clear sections with ### headers."""
+Focus on B2B and wholesale industry patterns. Ensure the response is valid JSON."""
 
             messages = [
                 {"role": "system", "content": "You are an expert market analyst for B2B applications."},
@@ -298,7 +324,28 @@ Format your response in clear sections with ### headers."""
     async def optimize_description(self, current_description: str, keywords: List[str]) -> Dict:
         """Optimize app description using AI analysis"""
         try:
-            prompt = f"""As an ASO expert, optimize this B2B app description:
+            prompt = f"""As an ASO expert, optimize this B2B app description in this exact JSON format:
+{{
+    "optimized_description": "full optimized description here",
+    "improvements": [
+        {{
+            "type": "keyword placement/readability/structure",
+            "change": "what was changed",
+            "impact": "expected impact"
+        }}
+    ],
+    "keyword_usage": [
+        {{
+            "keyword": "used keyword",
+            "count": 2,
+            "placement": "title/first_paragraph/body"
+        }}
+    ],
+    "recommendations": [
+        "recommendation 1",
+        "recommendation 2"
+    ]
+}}
 
 Current Description:
 {current_description}
@@ -306,16 +353,7 @@ Current Description:
 Target Keywords:
 {', '.join(keywords)}
 
-Provide optimization analysis in these sections:
-1. Optimized Description
-2. Key Improvements
-3. Keyword Placement
-4. Structure Recommendations
-5. Call-to-action Suggestions
-6. Readability Analysis
-7. SEO Impact
-
-Format your response in clear sections with ### headers."""
+Focus on B2B wholesale domain best practices. Ensure the response is valid JSON."""
 
             messages = [
                 {"role": "system", "content": "You are an expert ASO copywriter for B2B applications."},

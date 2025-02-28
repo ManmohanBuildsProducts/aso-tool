@@ -85,7 +85,7 @@ from .ranking_analyzer import RankingAnalyzer
 from .metadata_optimizer import MetadataOptimizer
 
 # Initialize components
-deepseek_analyzer = DeepseekAnalyzer("sk-340de15952f44634804e7ae35af95cd2")
+deepseek_analyzer = DeepseekAnalyzer()
 aso_analyzer = ASOAnalyzer(db)
 ranking_scheduler = RankingScheduler(db)
 keyword_analyzer = KeywordAnalyzer(db)
@@ -98,8 +98,7 @@ async def startup_event():
     asyncio.create_task(ranking_scheduler.start())
 
 # Initialize DeepSeek analyzer
-from external_integrations.deepseek_analyzer import DeepseekAnalyzer
-analyzer = DeepseekAnalyzer()
+analyzer = deepseek_analyzer
 
 @app.post("/analyze/app/{app_id}")
 async def analyze_app(app_id: str, metadata: dict):

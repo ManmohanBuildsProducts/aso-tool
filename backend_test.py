@@ -1,11 +1,12 @@
 import requests
 import pytest
+import os
 from datetime import datetime
 import uuid
 
 class ASOAPITester:
-    def __init__(self, base_url="http://localhost:55240"):
-        self.base_url = base_url
+    def __init__(self, base_url=None):
+        self.base_url = base_url or os.environ.get('REACT_APP_BACKEND_URL', 'http://localhost:8001')
         self.tests_run = 0
         self.tests_passed = 0
         self.test_app_id = None

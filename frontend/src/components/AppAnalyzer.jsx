@@ -15,30 +15,52 @@ const AppAnalyzer = () => {
   const { data: jobData, isLoading: isJobLoading, error: jobError, refetch: createJob } = useQuery(
     ['analyze', appData],
     async () => {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/analyze`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(appData)
-      });
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
+      try {
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/analyze`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify(appData),
+          credentials: 'include'
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => null);
+          throw new Error(
+            errorData?.detail || 
+            `Server error: ${response.status} ${response.statusText}`
+          );
+        }
+
+        const result = await response.json();
+        if (result.error) {
+          throw new Error(result.error);
+        }
+
+        setTaskId(result.task_id);
+        setIsAnalyzing(true);
+        return result;
+      } catch (error) {
+        if (error.message.includes('Failed to fetch')) {
+          throw new Error('Unable to connect to server. Please check your connection and try again.');
+        }
+        throw error;
       }
-      const result = await response.json();
-      if (result.error) {
-        throw new Error(result.error);
-      }
-      setTaskId(result.task_id); // Changed from job_id to task_id
-      setIsAnalyzing(true);
-      return result;
     },
     {
       enabled: false,
-      retry: 3,
+      retry: (failureCount, error) => {
+        // Don't retry on 4xx errors
+        if (error.message.includes('Server error: 4')) {
+          return false;
+        }
+        return failureCount < 3;
+      },
       retryDelay: 1000,
       onError: (error) => {
-        console.error('Error creating job:', error);
+        console.error('Error creating analysis:', error);
         setIsAnalyzing(false);
       }
     }
@@ -48,55 +70,91 @@ const AppAnalyzer = () => {
     ['result', taskId],
     async () => {
       if (!taskId) return null;
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/analyze/${taskId}`);
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
+
+      try {
+        const response = await fetch(
+          `${process.env.REACT_APP_BACKEND_URL}/api/analyze/${taskId}`,
+          {
+            headers: {
+              'Accept': 'application/json'
+            },
+            credentials: 'include'
+          }
+        );
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => null);
+          throw new Error(
+            errorData?.detail || 
+            `Server error: ${response.status} ${response.statusText}`
+          );
+        }
+
+        const result = await response.json();
+        if (result.error) {
+          throw new Error(result.error);
+        }
+        
+        // Update status and progress
+        if (result.status === 'completed') {
+          setIsAnalyzing(false);
+          setProgress(100);
+        } else if (result.status === 'error') {
+          setIsAnalyzing(false);
+          throw new Error(result.error || 'Analysis failed');
+        } else if (result.status === 'timeout') {
+          setIsAnalyzing(false);
+          throw new Error('Analysis timed out. Please try again with fewer competitors or keywords.');
+        } else {
+          // Calculate progress based on available data
+          let currentProgress = 0;
+          if (result.data?.app_data) currentProgress += 20;
+          if (result.data?.competitor_data?.length) currentProgress += 20;
+          if (result.data?.analysis?.app_analysis) currentProgress += 20;
+          if (result.data?.analysis?.competitor_analysis) currentProgress += 20;
+          if (result.data?.analysis?.market_trends) currentProgress += 20;
+          setProgress(currentProgress);
+        }
+        
+        return result.data ? {
+          app_metadata: result.data.app_data,
+          analysis: result.data.analysis?.app_analysis,
+          competitor_analysis: result.data.analysis?.competitor_analysis,
+          keyword_suggestions: result.data.analysis?.keyword_suggestions,
+          market_trends: result.data.analysis?.market_trends,
+          description_optimization: result.data.analysis?.description_optimization
+        } : null;
+      } catch (error) {
+        if (error.message.includes('Failed to fetch')) {
+          throw new Error('Lost connection to server. Retrying...');
+        }
+        throw error;
       }
-      const result = await response.json();
-      if (result.error) {
-        throw new Error(result.error);
-      }
-      
-      // Update status and progress
-      if (result.status === 'completed') {
-        setIsAnalyzing(false);
-        setProgress(100);
-      } else if (result.status === 'error') {
-        setIsAnalyzing(false);
-        throw new Error(result.error || 'Analysis failed');
-      } else {
-        // Calculate progress based on available data
-        let currentProgress = 0;
-        if (result.app_data) currentProgress += 20;
-        if (result.competitor_data?.length) currentProgress += 20;
-        if (result.analysis?.app_analysis) currentProgress += 20;
-        if (result.analysis?.competitor_analysis) currentProgress += 20;
-        if (result.analysis?.market_trends) currentProgress += 20;
-        setProgress(currentProgress);
-      }
-      
-      return {
-        app_metadata: result.app_data,
-        analysis: result.analysis?.app_analysis,
-        competitor_analysis: result.analysis?.competitor_analysis,
-        keyword_suggestions: result.analysis?.keyword_suggestions,
-        market_trends: result.analysis?.market_trends,
-        description_optimization: result.analysis?.description_optimization
-      };
     },
     {
       enabled: !!taskId && isAnalyzing,
       refetchInterval: (data, query) => {
         if (!isAnalyzing) return false;
-        if (query.state.error) return false;
+        if (query.state.error) {
+          // Only stop polling on permanent errors
+          return !query.state.error.message.includes('Server error: 4');
+        }
         return 2000;  // Poll every 2 seconds
       },
-      retry: 3,
+      retry: (failureCount, error) => {
+        // Don't retry on 4xx errors
+        if (error.message.includes('Server error: 4')) {
+          return false;
+        }
+        return failureCount < 3;
+      },
       retryDelay: 1000,
       onError: (error) => {
         console.error('Error fetching results:', error);
-        setIsAnalyzing(false);
-        setProgress(0);
+        if (error.message.includes('Server error: 4')) {
+          setIsAnalyzing(false);
+          setProgress(0);
+        }
       }
     }
   );

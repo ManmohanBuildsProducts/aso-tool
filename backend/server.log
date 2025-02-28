@@ -119,3 +119,5 @@ INFO:     127.0.0.1:45046 - "GET /api/search?keyword=wholesale&limit=5 HTTP/1.1"
 INFO:     127.0.0.1:45048 - "GET /api/similar?package_name=com.badhobuyer&limit=5 HTTP/1.1" 200 OK
 2025-02-28 12:31:25,040 - aso_tool.external_integrations.playstore_scraper - ERROR - Error fetching page: 404
 INFO:     127.0.0.1:45056 - "POST /api/analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33902 - "GET /api HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:41424 - "GET /api HTTP/1.1" 404 Not Found

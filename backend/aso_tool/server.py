@@ -38,14 +38,16 @@ db = client.aso_tool
 # FastAPI app setup
 app = FastAPI()
 
-# Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
     allow_credentials=True,
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Add /api prefix to all routes
+app.router.prefix = "/api"
 
 # Initialize analyzers
 deepseek = DeepseekAnalyzer()
@@ -56,7 +58,7 @@ class AppMetadata(BaseModel):
     competitor_package_names: Optional[List[str]] = None
     keywords: Optional[List[str]] = None
 
-@app.get("/")
+@app.get("")
 async def root():
     return {"message": "ASO Tool API"}
 

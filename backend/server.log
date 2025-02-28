@@ -358,3 +358,11 @@ INFO:     127.0.0.1:60862 - "GET /similar?package_name=com.badhobuyer&limit=5 HT
 2025-02-28 13:04:16,174 - aso_tool.external_integrations.deepseek_analyzer - ERROR - Error parsing JSON response: Expecting value: line 1 column 1 (char 0)
 2025-02-28 13:04:16,230 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
 2025-02-28 13:04:16,230 - aso_tool.external_integrations.deepseek_analyzer - ERROR - Error parsing JSON response: Expecting value: line 1 column 1 (char 0)
+INFO:     127.0.0.1:43874 - "OPTIONS /api/analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43884 - "POST /api/analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43884 - "GET /api/analyze/89f4041b-d10d-405e-adc2-03fa94ebbcc6 HTTP/1.1" 200 OK
+2025-02-28 13:06:34,877 - aso_tool.external_integrations.playstore_scraper - ERROR - Error fetching page: 404
+INFO:     127.0.0.1:43884 - "GET /api/analyze/89f4041b-d10d-405e-adc2-03fa94ebbcc6 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43884 - "GET /api/analyze/89f4041b-d10d-405e-adc2-03fa94ebbcc6 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43884 - "GET /api/analyze/89f4041b-d10d-405e-adc2-03fa94ebbcc6 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43884 - "GET /api/analyze/89f4041b-d10d-405e-adc2-03fa94ebbcc6 HTTP/1.1" 200 OK

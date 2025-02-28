@@ -212,31 +212,68 @@ class PlayStoreScraper:
             results = []
             
             # Find app cards
-            app_cards = soup.find_all('div', {'class': 'VfPpkd-EScbFb-JIbuQc'})
+            app_cards = soup.find_all('div', {'class': 'VfPpkd-aGsRMb'})
+            if not app_cards:
+                app_cards = soup.find_all('div', {'class': 'ULeU3b'})
             
             for card in app_cards[:limit]:
                 try:
                     # Extract app name
-                    name = card.find('div', {'class': 'WsMG1c'})
-                    name = name.text.strip() if name else ""
+                    name = ""
+                    name_tag = card.find('div', {'class': 'Epkrse'})
+                    if not name_tag:
+                        name_tag = card.find('div', {'class': 'ubGTjb'})
+                    if name_tag:
+                        name = name_tag.text.strip()
                     
                     # Extract package name from link
-                    link = card.find('a', {'class': 'poRVub'})
                     package_name = ""
+                    link = card.find('a', {'class': 'Si6A0c'})
+                    if not link:
+                        link = card.find('a', {'class': 'poRVub'})
                     if link and 'href' in link.attrs:
                         match = re.search(r'id=([^&]+)', link['href'])
                         if match:
                             package_name = match.group(1)
                     
                     # Extract rating
-                    rating = card.find('div', {'class': 'pf5lIe'})
-                    rating = float(rating.find('div')['aria-label'].split()[1]) if rating else 0.0
+                    rating = 0.0
+                    rating_tag = card.find('div', {'class': 'LrNMN'})
+                    if not rating_tag:
+                        rating_tag = card.find('div', {'class': 'pf5lIe'})
+                    if rating_tag:
+                        try:
+                            rating_text = rating_tag.find('div')['aria-label']
+                            rating = float(re.search(r'(\d+(\.\d+)?)', rating_text).group(1))
+                        except (AttributeError, ValueError, TypeError):
+                            pass
                     
-                    results.append({
+                    # Extract additional metadata
+                    metadata = {
                         "name": name,
                         "package_name": package_name,
                         "rating": rating
-                    })
+                    }
+                    
+                    # Extract developer name
+                    dev_tag = card.find('div', {'class': 'wMUdtb'})
+                    if dev_tag:
+                        metadata["developer"] = dev_tag.text.strip()
+                    
+                    # Extract price
+                    price_tag = card.find('span', {'class': 'VfPpfd'})
+                    if price_tag:
+                        metadata["price"] = price_tag.text.strip()
+                    
+                    # Extract icon URL
+                    icon_tag = card.find('img', {'class': 'T75of'})
+                    if icon_tag and 'src' in icon_tag.attrs:
+                        src = icon_tag['src']
+                        if src.startswith('//'):
+                            src = 'https:' + src
+                        metadata["icon_url"] = src
+                    
+                    results.append(metadata)
                     
                 except Exception as e:
                     logger.error(f"Error processing app card: {e}")
@@ -261,37 +298,69 @@ class PlayStoreScraper:
             results = []
             
             # Find similar apps section
-            similar_section = soup.find('div', text=re.compile(r'Similar apps'))
+            similar_section = soup.find('div', text=re.compile(r'Similar apps', re.IGNORECASE))
             if similar_section:
-                similar_apps = similar_section.find_next('div').find_all('div', {'class': 'VfPpkd-EScbFb-JIbuQc'})
-                
-                for app in similar_apps[:limit]:
-                    try:
-                        # Extract app name
-                        name = app.find('div', {'class': 'WsMG1c'})
-                        name = name.text.strip() if name else ""
-                        
-                        # Extract package name from link
-                        link = app.find('a', {'class': 'poRVub'})
-                        package_name = ""
-                        if link and 'href' in link.attrs:
-                            match = re.search(r'id=([^&]+)', link['href'])
-                            if match:
-                                package_name = match.group(1)
-                        
-                        # Extract rating
-                        rating = app.find('div', {'class': 'pf5lIe'})
-                        rating = float(rating.find('div')['aria-label'].split()[1]) if rating else 0.0
-                        
-                        results.append({
-                            "name": name,
-                            "package_name": package_name,
-                            "rating": rating
-                        })
-                        
-                    except Exception as e:
-                        logger.error(f"Error processing similar app: {e}")
-                        continue
+                # Try different class names for similar apps container
+                similar_container = similar_section.find_parent('div')
+                if similar_container:
+                    similar_apps = similar_container.find_all('div', {'class': ['VfPpkd-aGsRMb', 'ULeU3b']})
+                    
+                    for app in similar_apps[:limit]:
+                        try:
+                            # Extract app name
+                            name = ""
+                            name_tag = app.find('div', {'class': ['Epkrse', 'ubGTjb']})
+                            if name_tag:
+                                name = name_tag.text.strip()
+                            
+                            # Extract package name from link
+                            package_name = ""
+                            link = app.find('a', {'class': ['Si6A0c', 'poRVub']})
+                            if link and 'href' in link.attrs:
+                                match = re.search(r'id=([^&]+)', link['href'])
+                                if match:
+                                    package_name = match.group(1)
+                            
+                            # Extract rating
+                            rating = 0.0
+                            rating_tag = app.find('div', {'class': ['LrNMN', 'pf5lIe']})
+                            if rating_tag:
+                                try:
+                                    rating_text = rating_tag.find('div')['aria-label']
+                                    rating = float(re.search(r'(\d+(\.\d+)?)', rating_text).group(1))
+                                except (AttributeError, ValueError, TypeError):
+                                    pass
+                            
+                            # Extract additional metadata
+                            metadata = {
+                                "name": name,
+                                "package_name": package_name,
+                                "rating": rating
+                            }
+                            
+                            # Extract developer name
+                            dev_tag = app.find('div', {'class': 'wMUdtb'})
+                            if dev_tag:
+                                metadata["developer"] = dev_tag.text.strip()
+                            
+                            # Extract price
+                            price_tag = app.find('span', {'class': 'VfPpfd'})
+                            if price_tag:
+                                metadata["price"] = price_tag.text.strip()
+                            
+                            # Extract icon URL
+                            icon_tag = app.find('img', {'class': 'T75of'})
+                            if icon_tag and 'src' in icon_tag.attrs:
+                                src = icon_tag['src']
+                                if src.startswith('//'):
+                                    src = 'https:' + src
+                                metadata["icon_url"] = src
+                            
+                            results.append(metadata)
+                            
+                        except Exception as e:
+                            logger.error(f"Error processing similar app: {e}")
+                            continue
             
             return results
             

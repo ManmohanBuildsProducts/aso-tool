@@ -27,6 +27,34 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+async def analyze_task(task_name: str, task_data: Dict) -> Dict:
+    """Helper function to run analysis tasks"""
+    try:
+        if task_name == "app_analysis":
+            return await deepseek.analyze_app_metadata(task_data)
+        elif task_name == "competitor_analysis":
+            return await deepseek.analyze_competitor_metadata(
+                task_data["app_data"],
+                task_data["competitor_data"]
+            )
+        elif task_name == "keyword_suggestions":
+            return await asyncio.gather(*[
+                deepseek.generate_keyword_suggestions(keyword)
+                for keyword in task_data["keywords"]
+            ])
+        elif task_name == "market_trends":
+            return await deepseek.analyze_market_trends()
+        elif task_name == "description_optimization":
+            return await deepseek.optimize_description(
+                task_data["description"],
+                task_data["keywords"]
+            )
+        else:
+            raise ValueError(f"Unknown task type: {task_name}")
+    except Exception as e:
+        logger.error(f"Error in {task_name}: {e}")
+        return {"error": str(e)}
+
 # Constants
 RATE_LIMIT_REQUESTS = 10  # Number of requests allowed
 RATE_LIMIT_WINDOW = 60    # Time window in seconds
@@ -453,54 +481,62 @@ async def process_analysis(job_id: str, data: AnalysisRequest):
         analysis_results = {}
         
         try:
-            # Run analyses concurrently with timeouts
+            # Prepare analysis tasks
             tasks = []
             
             # App analysis
-            tasks.append(("app_analysis", asyncio.create_task(
-                asyncio.wait_for(
-                    deepseek.analyze_app_metadata(app_data),
-                    timeout=60
-                )
-            )))
+            tasks.append(("app_analysis", app_data))
             
             # Competitor analysis
             if competitor_data:
-                tasks.append(("competitor_analysis", asyncio.create_task(
-                    asyncio.wait_for(
-                        deepseek.analyze_competitor_metadata(app_data, competitor_data),
-                        timeout=60
-                    )
-                )))
+                tasks.append(("competitor_analysis", {
+                    "app_data": app_data,
+                    "competitor_data": competitor_data
+                }))
             
             # Keyword suggestions
             if data.keywords:
-                tasks.append(("keyword_suggestions", asyncio.create_task(
-                    asyncio.wait_for(
-                        asyncio.gather(*[
-                            deepseek.generate_keyword_suggestions(keyword)
-                            for keyword in data.keywords
-                        ]),
-                        timeout=60
-                    )
-                )))
+                tasks.append(("keyword_suggestions", {
+                    "keywords": data.keywords
+                }))
             
             # Market trends
-            tasks.append(("market_trends", asyncio.create_task(
-                asyncio.wait_for(
-                    deepseek.analyze_market_trends(),
-                    timeout=60
-                )
-            )))
+            tasks.append(("market_trends", {}))
             
-            # Process results as they complete
-            for task_name, task in tasks:
+            # Description optimization
+            if data.keywords and app_data.get("description"):
+                tasks.append(("description_optimization", {
+                    "description": app_data["description"],
+                    "keywords": data.keywords
+                }))
+            
+            # Process tasks with proper error handling
+            total_tasks = len(tasks)
+            completed_tasks = 0
+            
+            for task_name, task_data in tasks:
                 try:
-                    result = await task
+                    # Check cache first
+                    cache_key = f"analysis_{task_name}_{data.package_name}"
+                    result = await get_cached_result(cache_key, db)
+                    
+                    if not result:
+                        # Run analysis with timeout
+                        result = await asyncio.wait_for(
+                            analyze_task(task_name, task_data),
+                            timeout=60
+                        )
+                        
+                        # Cache successful results
+                        if "error" not in result:
+                            await cache_result(cache_key, result, db)
+                    
                     analysis_results[task_name] = result
                     
                     # Update progress
-                    progress = 40 + (len(analysis_results) * 60 // len(tasks))
+                    completed_tasks += 1
+                    progress = 40 + (completed_tasks * 60 // total_tasks)
+                    
                     await db.jobs.update_one(
                         {"job_id": job_id},
                         {

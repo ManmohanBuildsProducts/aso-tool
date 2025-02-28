@@ -84,14 +84,15 @@ from .deepseek_analyzer import DeepseekAnalyzer
 from .ranking_analyzer import RankingAnalyzer
 from .metadata_optimizer import MetadataOptimizer
 
-# Initialize components
-deepseek_analyzer = DeepseekAnalyzer()
+# Initialize DeepSeek analyzer
+analyzer = DeepseekAnalyzer()
+
+# Initialize other components
 aso_analyzer = ASOAnalyzer(db)
 ranking_scheduler = RankingScheduler(db)
 keyword_analyzer = KeywordAnalyzer(db)
-ranking_analyzer = RankingAnalyzer(db, deepseek_analyzer)
-metadata_optimizer = MetadataOptimizer(db, deepseek_analyzer)
-analyzer = deepseek_analyzer
+ranking_analyzer = RankingAnalyzer(db, analyzer)
+metadata_optimizer = MetadataOptimizer(db, analyzer)
 
 @app.on_event("startup")
 async def startup_event():
@@ -280,7 +281,7 @@ async def analyze_competitor_impact(app_id: str):
             }
 
         # Analyze impact
-        analysis = await deepseek_analyzer.analyze_competitor_metadata(
+        analysis = await analyzer.analyze_competitor_metadata(
             app.get("metadata", {}),
             [comp.get("metadata", {}) for comp in competitors]
         )
@@ -362,7 +363,7 @@ async def ai_analyze_app(app_id: str):
         competitors = await db.apps.find({"is_competitor": True}).to_list(length=100)
         
         # Get AI analysis
-        analysis = await deepseek_analyzer.analyze_app_metadata(
+        analysis = await analyzer.analyze_app_metadata(
             app.get("metadata", {}),
             [comp.get("metadata", {}) for comp in competitors]
         )
@@ -376,7 +377,7 @@ async def ai_analyze_app(app_id: str):
 async def ai_analyze_keyword(keyword: str):
     """Get AI-powered keyword analysis"""
     try:
-        analysis = await deepseek_analyzer.generate_keyword_suggestions(keyword)
+        analysis = await analyzer.generate_keyword_suggestions(keyword)
         return analysis
     except Exception as e:
         logger.error(f"Error in keyword analysis: {e}")
@@ -386,7 +387,7 @@ async def ai_analyze_keyword(keyword: str):
 async def ai_analyze_trends():
     """Get AI-powered market trend analysis"""
     try:
-        analysis = await deepseek_analyzer.analyze_market_trends()
+        analysis = await analyzer.analyze_market_trends()
         return analysis
     except Exception as e:
         logger.error(f"Error in trend analysis: {e}")
@@ -404,7 +405,7 @@ async def ai_optimize_description(
             raise HTTPException(status_code=404, detail="App not found")
             
         current_description = app.get("metadata", {}).get("full_description", "")
-        optimization = await deepseek_analyzer.optimize_description(
+        optimization = await analyzer.optimize_description(
             current_description,
             keywords
         )

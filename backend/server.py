@@ -5,11 +5,16 @@ from motor.motor_asyncio import AsyncIOMotorClient
 import uvicorn
 import os
 import logging
+import sys
 from pathlib import Path
 from typing import Dict, List, Optional
 from pydantic import BaseModel
-from external_integrations.deepseek_analyzer import DeepseekAnalyzer
-from external_integrations.playstore_scraper import PlayStoreScraper
+
+# Add backend directory to Python path
+sys.path.append(str(Path(__file__).parent))
+
+from .external_integrations.deepseek_analyzer import DeepseekAnalyzer
+from .external_integrations.playstore_scraper import PlayStoreScraper
 
 # Setup logging
 logging.basicConfig(

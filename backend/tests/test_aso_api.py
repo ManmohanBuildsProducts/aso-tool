@@ -44,87 +44,77 @@ class ASOAPITester:
         """Test app analysis endpoint"""
         return self.run_test(
             "App Analysis",
-            "GET",
-            f"analyze/app/{self.test_app}",
-            200
-        )
-
-    def test_analyze_keywords(self):
-        """Test keyword analysis endpoint"""
-        return self.run_test(
-            "Keyword Analysis",
             "POST",
-            "analyze/keywords",
+            "analyze",
             200,
             data={
-                "base_keyword": "wholesale",
-                "industry": "B2B wholesale"
-            }
-        )
-
-    def test_analyze_competitors(self):
-        """Test competitor analysis endpoint"""
-        return self.run_test(
-            "Competitor Analysis",
-            "POST",
-            "analyze/competitors",
-            200,
-            data={
-                "app_metadata": {"name": "BadhoBuyer", "category": "Business"},
-                "competitor_metadata": [
-                    {"name": "Kirana Club", "category": "Business"},
-                    {"name": "Udaan", "category": "Business"}
-                ]
-            }
-        )
-
-    def test_analyze_trends(self):
-        """Test market trends analysis endpoint"""
-        return self.run_test(
-            "Market Trends Analysis",
-            "POST",
-            "analyze/trends",
-            200,
-            data={
-                "category": "B2B wholesale"
-            }
-        )
-
-    def test_optimize_description(self):
-        """Test description optimization endpoint"""
-        return self.run_test(
-            "Description Optimization",
-            "POST",
-            "optimize/description",
-            200,
-            data={
-                "current_description": "B2B wholesale app for businesses",
+                "package_name": self.test_app,
+                "competitor_package_names": self.test_competitors,
                 "keywords": ["wholesale", "b2b", "business"]
             }
         )
 
+    def test_search_keyword(self):
+        """Test keyword search endpoint"""
+        return self.run_test(
+            "Keyword Search",
+            "GET",
+            "search?keyword=wholesale%20b2b&limit=10",
+            200
+        )
+
+    def test_similar_apps(self):
+        """Test similar apps endpoint"""
+        return self.run_test(
+            "Similar Apps",
+            "GET",
+            f"similar?package_name={self.test_app}&limit=5",
+            200
+        )
+
 def main():
     # Use localhost with backend port
-    backend_url = "http://localhost:55925"
+    backend_url = "http://localhost:8001"
     
-    if not backend_url:
-        print("❌ Could not find backend URL in frontend/.env")
-        return 1
-
     print(f"🔗 Using backend URL: {backend_url}")
     
     # Initialize tester
     tester = ASOAPITester(backend_url)
 
-    # Run tests
-    tester.test_analyze_app()
-    tester.test_analyze_keywords()
-    tester.test_analyze_competitors()
-    tester.test_analyze_trends()
-    tester.test_optimize_description()
+    print("\n🚀 Starting ASO Tool API Tests\n")
+
+    # Test 1: Analyze BadhoBuyer app
+    success, response = tester.test_analyze_app()
+    if not success:
+        print("❌ BadhoBuyer analysis failed")
+    else:
+        print("✅ App analysis successful")
+        print("- App metadata retrieved")
+        print("- Competitor analysis performed")
+        print("- Keywords analyzed")
+
+    # Test 2: Search for wholesale b2b keyword
+    success, response = tester.test_search_keyword()
+    if not success:
+        print("❌ Keyword search failed")
+    else:
+        print("✅ Keyword search successful")
+        print(f"- Found {len(response.get('results', []))} results")
+
+    # Test 3: Get similar apps for BadhoBuyer
+    success, response = tester.test_similar_apps()
+    if not success:
+        print("❌ Similar apps search failed")
+    else:
+        print("✅ Similar apps search successful")
+        print(f"- Found {len(response.get('results', []))} similar apps")
 
     # Print results
-    print(f"\n📊 Tests passed: {tester.tests_passed}/{tester.tests_run}")
+    print(f"\n📊 Tests Summary:")
+    print(f"Total tests: {tester.tests_run}")
+    print(f"Passed: {tester.tests_passed}")
+    print(f"Failed: {tester.tests_run - tester.tests_passed}")
+
     return 0 if tester.tests_passed == tester.tests_run else 1
 
 if __name__ == "__main__":

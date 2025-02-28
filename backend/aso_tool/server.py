@@ -8,10 +8,12 @@ import logging
 from pathlib import Path
 from typing import Dict, List, Optional
 from pydantic import BaseModel
-from datetime import datetime
+from datetime import datetime, timedelta
 import sys
 import asyncio
 from uuid import uuid4
+import json
+from bson import ObjectId
 
 # Configure logging
 logging.basicConfig(
@@ -61,6 +63,16 @@ class AppMetadata(BaseModel):
     package_name: str
     competitor_package_names: Optional[List[str]] = None
     keywords: Optional[List[str]] = None
+
+class JobStatus(BaseModel):
+    job_id: str
+    status: str
+    created_at: datetime
+    updated_at: datetime
+    app_data: Optional[Dict] = None
+    competitor_data: Optional[List[Dict]] = None
+    analysis: Optional[Dict] = None
+    error: Optional[str] = None
 
 @app.get("/")
 async def root():

@@ -23,7 +23,8 @@ class DeepseekAnalyzer:
                     "model": "deepseek-chat",
                     "messages": messages,
                     "temperature": 0.7,
-                    "max_tokens": 2000
+                    "max_tokens": 2000,
+                    "response_format": { "type": "json_object" }
                 }
                 
                 logger.info(f"Making request to Deepseek API with payload: {json.dumps(payload)}")
@@ -37,18 +38,31 @@ class DeepseekAnalyzer:
                     logger.info(f"Deepseek API response: {response_text}")
                     
                     if response.status == 200:
-                        data = json.loads(response_text)
-                        content = data['choices'][0]['message']['content']
-                        
-                        # Try to parse the response as JSON
                         try:
-                            return json.loads(content)
-                        except json.JSONDecodeError:
-                            # If not JSON, return as structured data
-                            return self._parse_markdown_response(content)
+                            data = json.loads(response_text)
+                            content = data['choices'][0]['message']['content']
+                            
+                            # Ensure content is valid JSON
+                            if isinstance(content, str):
+                                content = json.loads(content)
+                            
+                            return {
+                                "analysis": content,
+                                "format": "json"
+                            }
+                        except json.JSONDecodeError as e:
+                            logger.error(f"Error parsing JSON response: {e}")
+                            return {
+                                "analysis": self._parse_markdown_response(content),
+                                "format": "markdown"
+                            }
                     else:
-                        logger.error(f"Deepseek API error: {response_text}")
-                        return None
+                        error_msg = f"Deepseek API error: {response_text}"
+                        logger.error(error_msg)
+                        return {
+                            "error": error_msg,
+                            "format": "error"
+                        }
                         
         except Exception as e:
             logger.error(f"Error making Deepseek request: {e}")

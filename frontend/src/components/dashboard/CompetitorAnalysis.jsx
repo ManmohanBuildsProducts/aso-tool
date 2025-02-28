@@ -3,15 +3,25 @@ import { ResponsiveBar } from '@nivo/bar';
 import { HiExclamationCircle, HiCheckCircle, HiXCircle } from 'react-icons/hi';
 
 const CompetitorAnalysis = ({ data }) => {
-  const analysis = data?.metadata_analysis?.analysis;
-  const competitors = data?.competitors || [];
+  if (!data) {
+    return (
+      <div className="bg-white rounded-xl shadow-lg p-6 h-[400px] flex items-center justify-center">
+        <div className="text-center text-gray-500">
+          <HiExclamationCircle className="w-8 h-8 mx-auto mb-2" />
+          <p>No competitor analysis available</p>
+        </div>
+      </div>
+    );
+  }
 
-  // Prepare data for the chart
-  const chartData = competitors.map(comp => ({
-    name: comp.name,
-    ...comp.metrics,
-    value: Math.random() * 100  // TODO: Replace with actual metric
-  })).slice(0, 5);  // Show top 5 competitors
+  const analysis = data;
+  
+  // Prepare data for the chart based on keyword gaps
+  const chartData = analysis.keyword_gaps.map(gap => ({
+    name: gap.keyword,
+    value: gap.importance === 'high' ? 80 : gap.importance === 'medium' ? 50 : 30,
+    competitor_usage: gap.competitor_usage
+  })).slice(0, 5);  // Show top 5 keyword gaps
 
   const getStatusIcon = (type) => {
     switch(type) {
@@ -47,11 +57,11 @@ const CompetitorAnalysis = ({ data }) => {
           data={chartData}
           keys={['value']}
           indexBy="name"
-          margin={{ top: 20, right: 20, bottom: 50, left: 60 }}
+          margin={{ top: 20, right: 120, bottom: 50, left: 60 }}
           padding={0.3}
-          valueScale={{ type: 'linear' }}
+          valueScale={{ type: 'linear', min: 0, max: 100 }}
           indexScale={{ type: 'band', round: true }}
-          colors={{ scheme: 'nivo' }}
+          colors={{ scheme: 'category10' }}
           borderColor={{ from: 'color', modifiers: [['darker', 1.6]] }}
           axisTop={null}
           axisRight={null}
@@ -59,7 +69,7 @@ const CompetitorAnalysis = ({ data }) => {
             tickSize: 5,
             tickPadding: 5,
             tickRotation: -45,
-            legend: 'Competitors',
+            legend: 'Keywords',
             legendPosition: 'middle',
             legendOffset: 40
           }}
@@ -67,16 +77,39 @@ const CompetitorAnalysis = ({ data }) => {
             tickSize: 5,
             tickPadding: 5,
             tickRotation: 0,
-            legend: 'Market Position',
+            legend: 'Importance Score',
             legendPosition: 'middle',
             legendOffset: -40
           }}
           labelSkipWidth={12}
           labelSkipHeight={12}
           labelTextColor={{ from: 'color', modifiers: [['darker', 1.6]] }}
+          legends={[
+            {
+              dataFrom: 'keys',
+              anchor: 'bottom-right',
+              direction: 'column',
+              justify: false,
+              translateX: 120,
+              translateY: 0,
+              itemsSpacing: 2,
+              itemWidth: 100,
+              itemHeight: 20,
+              itemDirection: 'left-to-right',
+              itemOpacity: 0.85,
+              symbolSize: 20,
+              effects: [
+                {
+                  on: 'hover',
+                  style: {
+                    itemOpacity: 1
+                  }
+                }
+              ]
+            }
+          ]}
           animate={true}
-          motionStiffness={90}
-          motionDamping={15}
+          motionConfig="gentle"
         />
       </div>
 

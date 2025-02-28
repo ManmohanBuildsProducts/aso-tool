@@ -1,13 +1,41 @@
 import React from 'react';
 import { useQuery } from 'react-query';
-import { fetchAppAnalysis, fetchKeywordAnalysis, fetchCompetitorAnalysis } from '../services/api';
+import { 
+  fetchAppAnalysis, 
+  fetchKeywordAnalysis, 
+  fetchCompetitorAnalysis,
+  fetchMarketTrends 
+} from '../services/api';
 import ASOScoreCard from './dashboard/ASOScoreCard';
 import KeywordTable from './dashboard/KeywordTable';
 import CompetitorAnalysis from './dashboard/CompetitorAnalysis';
+import MarketTrends from './dashboard/MarketTrends';
 import LoadingState from './common/LoadingState';
 import ErrorState from './common/ErrorState';
 
 const Dashboard = ({ appId }) => {
+  const appMetadata = {
+    title: "BadhoBuyer - B2B Wholesale Trading App",
+    description: "BadhoBuyer is a B2B wholesale trading platform connecting businesses with suppliers.",
+    category: "Business",
+    keywords: ["wholesale", "b2b", "business", "trading", "supplier"]
+  };
+
+  const competitors = [
+    {
+      title: "Kirana Club - B2B Wholesale App",
+      description: "Kirana Club is a B2B wholesale app for retailers and suppliers.",
+      category: "Business",
+      keywords: ["wholesale", "b2b", "kirana", "retail", "supplier"]
+    },
+    {
+      title: "Udaan - B2B Trading Platform",
+      description: "Udaan is India's largest B2B trading platform for businesses.",
+      category: "Business",
+      keywords: ["wholesale", "b2b", "trading", "marketplace", "business"]
+    }
+  ];
+
   // Fetch app analysis
   const { 
     data: appData,
@@ -15,7 +43,7 @@ const Dashboard = ({ appId }) => {
     error: appError
   } = useQuery(
     ['appAnalysis', appId],
-    () => fetchAppAnalysis(appId),
+    () => fetchAppAnalysis(appId, appMetadata),
     {
       staleTime: 5 * 60 * 1000  // 5 minutes
     }
@@ -28,7 +56,7 @@ const Dashboard = ({ appId }) => {
     error: keywordError
   } = useQuery(
     ['keywordAnalysis', appId],
-    () => fetchKeywordAnalysis('b2b wholesale'),  // TODO: Make dynamic
+    () => fetchKeywordAnalysis('wholesale b2b', 'B2B wholesale'),
     {
       staleTime: 5 * 60 * 1000
     }
@@ -41,20 +69,30 @@ const Dashboard = ({ appId }) => {
     error: competitorError
   } = useQuery(
     ['competitorAnalysis', appId],
-    () => fetchCompetitorAnalysis(
-      { name: "BadhoBuyer", category: "Business" },
-      [
-        { name: "Kirana Club", category: "Business" },
-        { name: "Udaan", category: "Business" }
-      ]
-    ),
+    () => fetchCompetitorAnalysis({
+      app_metadata: appMetadata,
+      competitor_metadata: competitors
+    }),
     {
       staleTime: 5 * 60 * 1000
     }
   );
 
+  // Fetch market trends
+  const {
+    data: trendsData,
+    isLoading: isLoadingTrends,
+    error: trendsError
+  } = useQuery(
+    ['marketTrends'],
+    () => fetchMarketTrends({ category: 'B2B wholesale' }),
+    {
+      staleTime: 15 * 60 * 1000  // 15 minutes
+    }
+  );
+
   // Show loading state
-  if (isLoadingApp || isLoadingKeywords || isLoadingCompetitors) {
+  if (isLoadingApp || isLoadingKeywords || isLoadingCompetitors || isLoadingTrends) {
     return (
       <div className="space-y-6" data-testid="dashboard-loading">
         <LoadingState 
@@ -69,13 +107,17 @@ const Dashboard = ({ appId }) => {
           message="Analyzing competitors..." 
           testId="competitor-loading"
         />
+        <LoadingState 
+          message="Analyzing market trends..." 
+          testId="trends-loading"
+        />
       </div>
     );
   }
 
   // Show error state with details
-  if (appError || keywordError || competitorError) {
-    const error = appError || keywordError || competitorError;
+  if (appError || keywordError || competitorError || trendsError) {
+    const error = appError || keywordError || competitorError || trendsError;
     const errorMessage = error?.response?.data?.detail || error?.message || 'An error occurred';
     
     return (
@@ -87,20 +129,37 @@ const Dashboard = ({ appId }) => {
   }
 
   return (
-    <div className="space-y-6" data-testid="dashboard-container">
-      {/* Top Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2" data-testid="aso-score-section">
-          <ASOScoreCard data={appData} />
-        </div>
-        <div data-testid="competitor-section">
-          <CompetitorAnalysis data={competitorData} />
+    <div className="space-y-8" data-testid="dashboard-container">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">ASO Dashboard</h1>
+        <div className="text-sm text-gray-500">
+          Last updated: {new Date().toLocaleString()}
         </div>
       </div>
 
-      {/* Bottom Row */}
-      <div data-testid="keyword-section">
-        <KeywordTable data={keywordData} />
+      {/* Top Row - ASO Score and Market Trends */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white rounded-lg shadow-lg p-6" data-testid="aso-score-section">
+          <h2 className="text-xl font-semibold mb-4">ASO Score</h2>
+          <ASOScoreCard data={appData?.analysis} />
+        </div>
+        <div className="bg-white rounded-lg shadow-lg p-6" data-testid="trends-section">
+          <h2 className="text-xl font-semibold mb-4">Market Trends</h2>
+          <MarketTrends data={trendsData?.analysis} />
+        </div>
+      </div>
+
+      {/* Middle Row - Competitor Analysis */}
+      <div className="bg-white rounded-lg shadow-lg p-6" data-testid="competitor-section">
+        <h2 className="text-xl font-semibold mb-4">Competitor Analysis</h2>
+        <CompetitorAnalysis data={competitorData?.analysis} />
+      </div>
+
+      {/* Bottom Row - Keyword Analysis */}
+      <div className="bg-white rounded-lg shadow-lg p-6" data-testid="keyword-section">
+        <h2 className="text-xl font-semibold mb-4">Keyword Analysis</h2>
+        <KeywordTable data={keywordData?.analysis} />
       </div>
     </div>
   );

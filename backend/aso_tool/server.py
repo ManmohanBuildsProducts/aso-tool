@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI, HTTPException, BackgroundTasks, APIRouter
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -46,8 +46,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Add /api prefix to all routes
-app.router.prefix = "/api"
+# Create API router
+api_router = APIRouter(prefix="/api")
+app.include_router(api_router)
 
 # Initialize analyzers
 deepseek = DeepseekAnalyzer()

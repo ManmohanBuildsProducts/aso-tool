@@ -47,10 +47,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Create API router
-api_router = APIRouter()
-app.include_router(api_router)
-
 # Initialize analyzers
 deepseek = DeepseekAnalyzer()
 playstore = PlayStoreScraper()
@@ -60,14 +56,14 @@ class AppMetadata(BaseModel):
     competitor_package_names: Optional[List[str]] = None
     keywords: Optional[List[str]] = None
 
-@api_router.get("/")
+@app.get("/")
 async def root():
     return {"message": "ASO Tool API"}
 
 # Store analysis results
 analysis_results = {}
 
-@api_router.post("/analyze")
+@app.post("/analyze")
 async def analyze_app(data: AppMetadata, background_tasks: BackgroundTasks):
     try:
         # Generate unique task ID
@@ -93,7 +89,7 @@ async def analyze_app(data: AppMetadata, background_tasks: BackgroundTasks):
         logger.error(f"Error in analyze_app: {e}")
         return {"error": str(e)}
 
-@api_router.get("/analyze/{task_id}")
+@app.get("/analyze/{task_id}")
 async def get_analysis_result(task_id: str):
     try:
         if task_id not in analysis_results:
@@ -218,7 +214,7 @@ async def process_analysis(task_id: str, data: AppMetadata):
             "error": str(e)
         }
 
-@api_router.get("/search")
+@app.get("/search")
 async def search_keyword(keyword: str, limit: int = 10):
     try:
         results = await playstore.search_keywords(keyword, limit)
@@ -227,7 +223,7 @@ async def search_keyword(keyword: str, limit: int = 10):
         logger.error(f"Error in search_keyword: {e}")
         return {"error": str(e)}
 
-@api_router.get("/similar")
+@app.get("/similar")
 async def get_similar_apps(package_name: str, limit: int = 5):
     try:
         results = await playstore.get_similar_apps(package_name, limit)

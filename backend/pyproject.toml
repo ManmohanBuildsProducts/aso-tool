@@ -1,9 +1,12 @@
 [tool.poetry]
-name = "backend"
+name = "aso_tool"
 authors = ["Your Name <your.email@example.com>"]
 version = "0.1.0"
 description = ""
 readme = "README.md"
+packages = [
+    { include = "aso_tool" }
+]
 
 [tool.poetry.dependencies]
 python = "^3.11"

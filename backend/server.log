@@ -5,3 +5,122 @@ INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
 INFO:     127.0.0.1:57536 - "GET /api HTTP/1.1" 307 Temporary Redirect
 INFO:     127.0.0.1:55342 - "GET /api/ HTTP/1.1" 200 OK
 INFO:     127.0.0.1:42988 - "GET /api/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56438 - "GET /api/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56452 - "POST /api/analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56452 - "GET /api/analyze/5564eb1e-4efd-4ec3-884b-b8d257052ef1 HTTP/1.1" 200 OK
+2025-02-28 12:48:52,604 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 12:48:52,604 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 12:48:52,604 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 12:48:52,604 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 12:48:52,604 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 12:48:52,605 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 12:48:52,605 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+INFO:     127.0.0.1:56452 - "GET /api/analyze/5564eb1e-4efd-4ec3-884b-b8d257052ef1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56452 - "GET /api/analyze/5564eb1e-4efd-4ec3-884b-b8d257052ef1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56452 - "GET /api/analyze/5564eb1e-4efd-4ec3-884b-b8d257052ef1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56452 - "GET /api/analyze/5564eb1e-4efd-4ec3-884b-b8d257052ef1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56452 - "GET /api/analyze/5564eb1e-4efd-4ec3-884b-b8d257052ef1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56452 - "GET /api/analyze/5564eb1e-4efd-4ec3-884b-b8d257052ef1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56452 - "GET /api/analyze/5564eb1e-4efd-4ec3-884b-b8d257052ef1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56452 - "GET /api/analyze/5564eb1e-4efd-4ec3-884b-b8d257052ef1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56452 - "GET /api/analyze/5564eb1e-4efd-4ec3-884b-b8d257052ef1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55242 - "GET /api/search?keyword=wholesale&limit=5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55244 - "GET /api/similar?package_name=com.badhobuyer&limit=5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55256 - "POST /api/analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55256 - "GET /api/analyze/8548287e-5bd7-44f8-9bf3-d94505894aae HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55272 - "POST /api/analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55280 - "POST /api/analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55282 - "POST /api/analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55272 - "GET /api/analyze/80ceaf51-faf8-47de-a14f-75b77e4d784c HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55280 - "GET /api/analyze/bac6b301-0821-4c29-ac7f-0eb8a05b8685 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55282 - "GET /api/analyze/136c807d-97ae-476b-b726-725df6e39d92 HTTP/1.1" 200 OK
+2025-02-28 12:49:12,214 - aso_tool.external_integrations.playstore_scraper - ERROR - Error fetching page: 404
+2025-02-28 12:49:12,435 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 12:49:12,436 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 12:49:12,436 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 12:49:12,436 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 12:49:12,436 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 12:49:12,457 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 12:49:12,457 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 12:49:12,457 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 12:49:12,457 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 12:49:12,457 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 12:49:12,475 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 12:49:12,475 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 12:49:12,475 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 12:49:12,475 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 12:49:12,475 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+INFO:     127.0.0.1:55272 - "GET /api/analyze/80ceaf51-faf8-47de-a14f-75b77e4d784c HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55280 - "GET /api/analyze/bac6b301-0821-4c29-ac7f-0eb8a05b8685 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55282 - "GET /api/analyze/136c807d-97ae-476b-b726-725df6e39d92 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55272 - "GET /api/analyze/80ceaf51-faf8-47de-a14f-75b77e4d784c HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55280 - "GET /api/analyze/bac6b301-0821-4c29-ac7f-0eb8a05b8685 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55282 - "GET /api/analyze/136c807d-97ae-476b-b726-725df6e39d92 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55272 - "GET /api/analyze/80ceaf51-faf8-47de-a14f-75b77e4d784c HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55280 - "GET /api/analyze/bac6b301-0821-4c29-ac7f-0eb8a05b8685 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55282 - "GET /api/analyze/136c807d-97ae-476b-b726-725df6e39d92 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55272 - "GET /api/analyze/80ceaf51-faf8-47de-a14f-75b77e4d784c HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55280 - "GET /api/analyze/bac6b301-0821-4c29-ac7f-0eb8a05b8685 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55282 - "GET /api/analyze/136c807d-97ae-476b-b726-725df6e39d92 HTTP/1.1" 200 OK
+2025-02-28 12:49:20,386 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+INFO:     127.0.0.1:55272 - "GET /api/analyze/80ceaf51-faf8-47de-a14f-75b77e4d784c HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55280 - "GET /api/analyze/bac6b301-0821-4c29-ac7f-0eb8a05b8685 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55282 - "GET /api/analyze/136c807d-97ae-476b-b726-725df6e39d92 HTTP/1.1" 200 OK
+2025-02-28 12:49:22,253 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 12:49:22,781 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+INFO:     127.0.0.1:55272 - "GET /api/analyze/80ceaf51-faf8-47de-a14f-75b77e4d784c HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55280 - "GET /api/analyze/bac6b301-0821-4c29-ac7f-0eb8a05b8685 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55282 - "GET /api/analyze/136c807d-97ae-476b-b726-725df6e39d92 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55272 - "GET /api/analyze/80ceaf51-faf8-47de-a14f-75b77e4d784c HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55280 - "GET /api/analyze/bac6b301-0821-4c29-ac7f-0eb8a05b8685 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55282 - "GET /api/analyze/136c807d-97ae-476b-b726-725df6e39d92 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55272 - "GET /api/analyze/80ceaf51-faf8-47de-a14f-75b77e4d784c HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55280 - "GET /api/analyze/bac6b301-0821-4c29-ac7f-0eb8a05b8685 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55282 - "GET /api/analyze/136c807d-97ae-476b-b726-725df6e39d92 HTTP/1.1" 200 OK
+2025-02-28 12:49:28,740 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+INFO:     127.0.0.1:55272 - "GET /api/analyze/80ceaf51-faf8-47de-a14f-75b77e4d784c HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55280 - "GET /api/analyze/bac6b301-0821-4c29-ac7f-0eb8a05b8685 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55282 - "GET /api/analyze/136c807d-97ae-476b-b726-725df6e39d92 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55272 - "GET /api/analyze/80ceaf51-faf8-47de-a14f-75b77e4d784c HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55280 - "GET /api/analyze/bac6b301-0821-4c29-ac7f-0eb8a05b8685 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55282 - "GET /api/analyze/136c807d-97ae-476b-b726-725df6e39d92 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55272 - "GET /api/analyze/80ceaf51-faf8-47de-a14f-75b77e4d784c HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55280 - "GET /api/analyze/bac6b301-0821-4c29-ac7f-0eb8a05b8685 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55282 - "GET /api/analyze/136c807d-97ae-476b-b726-725df6e39d92 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55272 - "GET /api/analyze/80ceaf51-faf8-47de-a14f-75b77e4d784c HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55280 - "GET /api/analyze/bac6b301-0821-4c29-ac7f-0eb8a05b8685 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55282 - "GET /api/analyze/136c807d-97ae-476b-b726-725df6e39d92 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55272 - "GET /api/analyze/80ceaf51-faf8-47de-a14f-75b77e4d784c HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55280 - "GET /api/analyze/bac6b301-0821-4c29-ac7f-0eb8a05b8685 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55282 - "GET /api/analyze/136c807d-97ae-476b-b726-725df6e39d92 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55272 - "GET /api/analyze/80ceaf51-faf8-47de-a14f-75b77e4d784c HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55280 - "GET /api/analyze/bac6b301-0821-4c29-ac7f-0eb8a05b8685 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55282 - "GET /api/analyze/136c807d-97ae-476b-b726-725df6e39d92 HTTP/1.1" 200 OK
+2025-02-28 12:49:40,027 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 12:49:49,936 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 12:49:50,041 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 12:49:52,900 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 12:49:52,900 - aso_tool.external_integrations.deepseek_analyzer - ERROR - Error parsing JSON response: Expecting value: line 1 column 1 (char 0)
+2025-02-28 12:49:55,592 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 12:50:03,643 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 12:50:04,692 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 12:50:13,083 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 12:50:13,083 - aso_tool.external_integrations.deepseek_analyzer - ERROR - Error parsing JSON response: Expecting value: line 1 column 1 (char 0)
+2025-02-28 12:50:13,084 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 12:50:13,084 - aso_tool.external_integrations.deepseek_analyzer - ERROR - Error parsing JSON response: Expecting value: line 1 column 1 (char 0)
+2025-02-28 12:50:13,084 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 12:50:13,084 - aso_tool.external_integrations.deepseek_analyzer - ERROR - Error parsing JSON response: Expecting value: line 1 column 1 (char 0)
+2025-02-28 12:50:13,084 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 12:50:13,084 - aso_tool.external_integrations.deepseek_analyzer - ERROR - Error parsing JSON response: Expecting value: line 1 column 1 (char 0)
+2025-02-28 12:50:13,086 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 12:50:13,086 - aso_tool.external_integrations.deepseek_analyzer - ERROR - Error parsing JSON response: Expecting value: line 1 column 1 (char 0)
+2025-02-28 12:50:13,087 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 12:50:13,087 - aso_tool.external_integrations.deepseek_analyzer - ERROR - Error parsing JSON response: Expecting value: line 1 column 1 (char 0)
+2025-02-28 12:50:13,113 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 12:50:13,113 - aso_tool.external_integrations.deepseek_analyzer - ERROR - Error parsing JSON response: Expecting value: line 1 column 1 (char 0)
+2025-02-28 12:50:13,121 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 12:50:13,121 - aso_tool.external_integrations.deepseek_analyzer - ERROR - Error parsing JSON response: Expecting value: line 1 column 1 (char 0)
+2025-02-28 12:50:22,524 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 12:50:29,488 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 12:50:32,674 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+INFO:     127.0.0.1:54674 - "GET /api/ HTTP/1.1" 200 OK

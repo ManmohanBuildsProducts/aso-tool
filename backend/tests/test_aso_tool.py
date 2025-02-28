@@ -2,135 +2,157 @@ import pytest
 import aiohttp
 import asyncio
 import os
-from datetime import datetime
-import json
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Get backend URL from environment
-BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', '')
+BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'http://localhost:8001')
 
 class TestASOTool:
     @pytest.fixture
-    def test_data(self):
-        return {
+    async def session(self):
+        async with aiohttp.ClientSession() as session:
+            yield session
+
+    @pytest.mark.asyncio
+    async def test_root_endpoint(self, session):
+        """Test root endpoint"""
+        async with session.get(f"{BACKEND_URL}/api/") as response:
+            assert response.status == 200
+            data = await response.json()
+            assert data["message"] == "ASO Tool API"
+
+    @pytest.mark.asyncio
+    async def test_analyze_app(self, session):
+        """Test app analysis workflow"""
+        # Test data
+        test_data = {
             "package_name": "com.badhobuyer",
             "competitor_package_names": ["club.kirana", "com.udaan.android"],
             "keywords": ["wholesale", "b2b", "business"]
         }
 
-    async def test_analyze_endpoint(self, test_data):
-        """Test the /analyze endpoint"""
-        async with aiohttp.ClientSession() as session:
-            # Create analysis task
-            async with session.post(
-                f"{BACKEND_URL}/api/analyze",
-                json=test_data
-            ) as response:
-                assert response.status == 200
-                data = await response.json()
-                assert "task_id" in data
-                assert data["status"] == "processing"
-                task_id = data["task_id"]
+        # Start analysis
+        print("Starting app analysis...")
+        async with session.post(
+            f"{BACKEND_URL}/api/analyze",
+            json=test_data
+        ) as response:
+            assert response.status == 200
+            data = await response.json()
+            assert "task_id" in data
+            assert data["status"] == "processing"
+            task_id = data["task_id"]
 
-                # Poll for results
-                max_retries = 10
-                retry_count = 0
-                while retry_count < max_retries:
-                    async with session.get(
-                        f"{BACKEND_URL}/api/analyze/{task_id}"
-                    ) as status_response:
-                        assert status_response.status == 200
-                        status_data = await status_response.json()
-                        
-                        if status_data["status"] == "completed":
-                            assert "data" in status_data
-                            assert status_data["progress"] == 100
-                            return
-                        elif status_data["status"] == "error":
-                            pytest.fail(f"Task failed: {status_data['error']}")
-                        
-                        await asyncio.sleep(2)
-                        retry_count += 1
+        # Poll for results
+        print("Polling for results...")
+        max_retries = 30
+        retry_count = 0
+        result_data = None
 
-                pytest.fail("Task did not complete in time")
-
-    async def test_search_endpoint(self):
-        """Test the /search endpoint"""
-        async with aiohttp.ClientSession() as session:
+        while retry_count < max_retries:
             async with session.get(
-                f"{BACKEND_URL}/api/search",
-                params={"keyword": "wholesale", "limit": 5}
+                f"{BACKEND_URL}/api/analyze/{task_id}"
             ) as response:
                 assert response.status == 200
-                data = await response.json()
-                assert "results" in data
-                assert isinstance(data["results"], list)
+                result = await response.json()
+                
+                if result.get("status") == "completed":
+                    result_data = result.get("data")
+                    break
+                elif result.get("status") == "error":
+                    pytest.fail(f"Analysis failed: {result.get('error')}")
+                    break
+                
+                print(f"Progress: {result.get('progress')}%")
+                await asyncio.sleep(2)
+                retry_count += 1
 
-    async def test_similar_apps_endpoint(self):
-        """Test the /similar endpoint"""
-        async with aiohttp.ClientSession() as session:
-            async with session.get(
-                f"{BACKEND_URL}/api/similar",
-                params={"package_name": "com.badhobuyer", "limit": 5}
-            ) as response:
-                assert response.status == 200
-                data = await response.json()
-                assert "results" in data
-                assert isinstance(data["results"], list)
+        assert result_data is not None, "Analysis did not complete in time"
+        
+        # Validate result structure
+        assert "app_metadata" in result_data
+        assert "analysis" in result_data
+        assert "competitor_analysis" in result_data
+        assert "keyword_suggestions" in result_data
+        assert "market_trends" in result_data
 
-    async def test_error_handling(self):
+        # Validate app metadata
+        app_metadata = result_data["app_metadata"]
+        assert "title" in app_metadata
+        assert "description" in app_metadata
+        assert "rating" in app_metadata
+        assert "category" in app_metadata
+
+    @pytest.mark.asyncio
+    async def test_search_keyword(self, session):
+        """Test keyword search"""
+        keyword = "wholesale"
+        async with session.get(
+            f"{BACKEND_URL}/api/search?keyword={keyword}&limit=5"
+        ) as response:
+            assert response.status == 200
+            data = await response.json()
+            assert "results" in data
+            assert len(data["results"]) <= 5
+            
+            if data["results"]:
+                app = data["results"][0]
+                assert "name" in app
+                assert "package_name" in app
+                assert "rating" in app
+
+    @pytest.mark.asyncio
+    async def test_similar_apps(self, session):
+        """Test similar apps endpoint"""
+        package_name = "com.badhobuyer"
+        async with session.get(
+            f"{BACKEND_URL}/api/similar?package_name={package_name}&limit=5"
+        ) as response:
+            assert response.status == 200
+            data = await response.json()
+            assert "results" in data
+            assert len(data["results"]) <= 5
+            
+            if data["results"]:
+                app = data["results"][0]
+                assert "name" in app
+                assert "package_name" in app
+                assert "rating" in app
+
+    @pytest.mark.asyncio
+    async def test_error_handling(self, session):
         """Test error handling"""
-        async with aiohttp.ClientSession() as session:
-            # Test invalid package name
-            async with session.post(
-                f"{BACKEND_URL}/api/analyze",
-                json={
-                    "package_name": "invalid.package.name",
-                    "competitor_package_names": [],
-                    "keywords": []
-                }
-            ) as response:
-                assert response.status == 200  # API returns 200 with error in response
-                data = await response.json()
-                assert "error" in data or "task_id" in data
+        # Test with invalid package name
+        test_data = {
+            "package_name": "invalid.package.name",
+            "competitor_package_names": [],
+            "keywords": []
+        }
 
-            # Test invalid task ID
+        async with session.post(
+            f"{BACKEND_URL}/api/analyze",
+            json=test_data
+        ) as response:
+            assert response.status == 200
+            data = await response.json()
+            assert "task_id" in data
+
+            # Check task status
+            task_id = data["task_id"]
             async with session.get(
-                f"{BACKEND_URL}/api/analyze/invalid_task_id"
-            ) as response:
-                assert response.status == 200
-                data = await response.json()
-                assert "error" in data
+                f"{BACKEND_URL}/api/analyze/{task_id}"
+            ) as status_response:
+                status_data = await status_response.json()
+                # Either the task should be in processing state or error state
+                assert status_data["status"] in ["processing", "error"]
 
-@pytest.mark.asyncio
-async def test_aso_tool():
-    """Run all ASO tool tests"""
-    test_instance = TestASOTool()
-    test_data = test_instance.test_data()
-    
-    print("\n🔍 Starting ASO Tool API Tests...")
-    
-    try:
-        print("\n✨ Testing analyze endpoint...")
-        await test_instance.test_analyze_endpoint(test_data)
-        print("✅ Analyze endpoint test passed")
-        
-        print("\n✨ Testing search endpoint...")
-        await test_instance.test_search_endpoint()
-        print("✅ Search endpoint test passed")
-        
-        print("\n✨ Testing similar apps endpoint...")
-        await test_instance.test_similar_apps_endpoint()
-        print("✅ Similar apps endpoint test passed")
-        
-        print("\n✨ Testing error handling...")
-        await test_instance.test_error_handling()
-        print("✅ Error handling test passed")
-        
-        print("\n🎉 All tests completed successfully!")
-        
-    except Exception as e:
-        print(f"\n❌ Test failed: {str(e)}")
-        raise
-
-if __name__ == "__main__":
-    asyncio.run(test_aso_tool())
+        # Test with invalid task ID
+        async with session.get(
+            f"{BACKEND_URL}/api/analyze/invalid_task_id"
+        ) as response:
+            assert response.status == 200
+            data = await response.json()
+            assert "error" in data

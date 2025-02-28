@@ -10,8 +10,9 @@ const AppAnalyzer = () => {
 
   const [taskId, setTaskId] = useState(null);
   const [progress, setProgress] = useState(0);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-  const { data: taskData, isLoading: isTaskLoading, error: taskError } = useQuery(
+  const { data: taskData, isLoading: isTaskLoading, error: taskError, refetch: createTask } = useQuery(
     ['analyze', appData],
     async () => {
       const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/analyze`, {
@@ -29,16 +30,21 @@ const AppAnalyzer = () => {
         throw new Error(result.error);
       }
       setTaskId(result.task_id);
+      setIsAnalyzing(true);
       return result;
     },
     {
       enabled: false,
       retry: 3,
-      retryDelay: 1000
+      retryDelay: 1000,
+      onError: (error) => {
+        console.error('Error creating task:', error);
+        setIsAnalyzing(false);
+      }
     }
   );
 
-  const { data, isLoading, error, refetch } = useQuery(
+  const { data, isLoading, error } = useQuery(
     ['result', taskId],
     async () => {
       if (!taskId) return null;
@@ -50,14 +56,25 @@ const AppAnalyzer = () => {
       if (result.error) {
         throw new Error(result.error);
       }
+      if (result.status === 'completed') {
+        setIsAnalyzing(false);
+      }
       setProgress(result.progress || 0);
       return result.data;
     },
     {
-      enabled: !!taskId,
-      refetchInterval: (data) => !data || data.status === 'processing' ? 1000 : false,
+      enabled: !!taskId && isAnalyzing,
+      refetchInterval: (data, query) => {
+        if (!isAnalyzing) return false;
+        if (query.state.error) return false;
+        return 1000;
+      },
       retry: 3,
-      retryDelay: 1000
+      retryDelay: 1000,
+      onError: (error) => {
+        console.error('Error fetching results:', error);
+        setIsAnalyzing(false);
+      }
     }
   );
 
@@ -65,7 +82,8 @@ const AppAnalyzer = () => {
     e.preventDefault();
     setTaskId(null);
     setProgress(0);
-    await refetch();
+    setIsAnalyzing(false);
+    await createTask();
   };
 
   const handleInputChange = (e) => {
@@ -129,26 +147,56 @@ const AppAnalyzer = () => {
         
         <button
           type="submit"
-          className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-          disabled={isLoading}
+          className={`inline-flex justify-center rounded-md border border-transparent py-2 px-4 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+            isAnalyzing || isLoading || isTaskLoading
+              ? 'bg-indigo-400 cursor-not-allowed'
+              : 'bg-indigo-600 hover:bg-indigo-700'
+          }`}
+          disabled={isAnalyzing || isLoading || isTaskLoading}
         >
-          {isLoading ? 'Analyzing...' : 'Analyze'}
+          {isAnalyzing ? (
+            <span className="flex items-center">
+              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Analyzing...
+            </span>
+          ) : isLoading || isTaskLoading ? (
+            'Starting analysis...'
+          ) : (
+            'Analyze'
+          )}
         </button>
       </form>
 
       {(error || taskError) && (
         <div className="mt-4 p-4 bg-red-100 text-red-700 rounded-md">
-          Error: {(error || taskError).message}
+          <div className="flex items-center">
+            <svg className="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+            </svg>
+            <span className="font-medium">Error: {(error || taskError).message}</span>
+          </div>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-2 inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+          >
+            <svg className="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Retry
+          </button>
         </div>
       )}
 
-      {(isLoading || isTaskLoading) && progress < 100 && (
+      {isAnalyzing && (
         <div className="mt-4">
           <div className="relative pt-1">
             <div className="flex mb-2 items-center justify-between">
               <div>
                 <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-indigo-600 bg-indigo-200">
-                  Progress
+                  Analyzing
                 </span>
               </div>
               <div className="text-right">
@@ -163,7 +211,20 @@ const AppAnalyzer = () => {
                 className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-indigo-500 transition-all duration-500"
               />
             </div>
+            <div className="text-sm text-gray-600 text-center">
+              {progress < 20 && "Fetching app metadata..."}
+              {progress >= 20 && progress < 40 && "Analyzing competitor data..."}
+              {progress >= 40 && progress < 60 && "Generating insights..."}
+              {progress >= 60 && progress < 80 && "Optimizing recommendations..."}
+              {progress >= 80 && progress < 100 && "Finalizing analysis..."}
+            </div>
           </div>
+        </div>
+      )}
+
+      {(isLoading || isTaskLoading) && !isAnalyzing && (
+        <div className="mt-4 flex justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
         </div>
       )}
 

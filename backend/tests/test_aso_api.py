@@ -104,14 +104,8 @@ class ASOAPITester:
         )
 
 def main():
-    # Get backend URL from frontend env
-    with open('/app/frontend/.env', 'r') as f:
-        env_content = f.read()
-        backend_url = None
-        for line in env_content.split('\n'):
-            if line.startswith('REACT_APP_BACKEND_URL='):
-                backend_url = line.split('=')[1].strip().strip('"')
-                break
+    # Use localhost with backend port
+    backend_url = "http://localhost:55925"
     
     if not backend_url:
         print("❌ Could not find backend URL in frontend/.env")

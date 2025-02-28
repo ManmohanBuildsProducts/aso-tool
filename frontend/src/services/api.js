@@ -1,8 +1,10 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
+const baseURL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+
 const api = axios.create({
-  baseURL: process.env.REACT_APP_BACKEND_URL || '/api',  // Use environment variable or default to /api
+  baseURL: `${baseURL}/api`,  // Always add /api prefix
   timeout: 60000,  // 60 seconds for AI operations
   headers: {
     'Content-Type': 'application/json'

@@ -97,9 +97,70 @@ async def startup_event():
     """Start the ranking scheduler on app startup"""
     asyncio.create_task(ranking_scheduler.start())
 
-@app.get("/")
-async def root():
-    return {"status": "healthy", "service": "Play Store ASO Tracker"}
+# Initialize DeepSeek analyzer
+from external_integrations.deepseek_analyzer import DeepseekAnalyzer
+analyzer = DeepseekAnalyzer()
+
+@app.post("/analyze/app/{app_id}")
+async def analyze_app(app_id: str, metadata: dict):
+    """Analyze app metadata and provide ASO recommendations"""
+    try:
+        result = await analyzer.analyze_app_metadata(metadata)
+        return result
+    except Exception as e:
+        logger.error(f"Error analyzing app: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/analyze/keywords")
+async def analyze_keywords(request: dict):
+    """Generate keyword suggestions and analysis"""
+    try:
+        result = await analyzer.generate_keyword_suggestions(
+            request.get("base_keyword", ""),
+            request.get("industry", "B2B wholesale")
+        )
+        return result
+    except Exception as e:
+        logger.error(f"Error analyzing keywords: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/analyze/competitors")
+async def analyze_competitors(request: dict):
+    """Analyze competitor metadata and provide insights"""
+    try:
+        result = await analyzer.analyze_competitor_metadata(
+            request.get("app_metadata", {}),
+            request.get("competitor_metadata", [])
+        )
+        return result
+    except Exception as e:
+        logger.error(f"Error analyzing competitors: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/optimize/description")
+async def optimize_description(request: dict):
+    """Optimize app description using AI analysis"""
+    try:
+        result = await analyzer.optimize_description(
+            request.get("current_description", ""),
+            request.get("keywords", [])
+        )
+        return result
+    except Exception as e:
+        logger.error(f"Error optimizing description: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/analyze/trends")
+async def analyze_trends(request: dict):
+    """Analyze market trends and provide insights"""
+    try:
+        result = await analyzer.analyze_market_trends(
+            request.get("category", "B2B wholesale")
+        )
+        return result
+    except Exception as e:
+        logger.error(f"Error analyzing trends: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/analyze/app/{app_id}")
 async def analyze_app(app_id: str):

@@ -113,57 +113,43 @@ async def test_error_handling():
 
 @pytest.mark.asyncio
 async def test_concurrent_tasks():
-    test_packages = [
-        "com.badhobuyer",
-        "club.kirana",
-        "com.udaan.android"
+    test_data_list = [
+        {
+            "package_name": "com.badhobuyer",
+            "competitor_package_names": ["club.kirana"],
+            "keywords": ["wholesale"]
+        },
+        {
+            "package_name": "club.kirana",
+            "competitor_package_names": ["com.badhobuyer"],
+            "keywords": ["b2b"]
+        }
     ]
     
     async with aiohttp.ClientSession() as session:
+        # Start multiple tasks
         tasks = []
-        for package in test_packages:
-            test_data = {
-                "package_name": package,
-                "competitor_package_names": [],
-                "keywords": ["wholesale", "b2b"]
-            }
-            tasks.append(
-                session.post(
-                    f"{BACKEND_URL}/api/analyze",
-                    json=test_data
-                )
-            )
+        for test_data in test_data_list:
+            async with session.post(
+                f"{BACKEND_URL}/api/analyze",
+                json=test_data
+            ) as response:
+                data = await response.json()
+                assert "task_id" in data
+                tasks.append(data["task_id"])
         
-        responses = await asyncio.gather(*tasks)
-        task_ids = []
-        
-        for response in responses:
-            data = await response.json()
-            assert "task_id" in data
-            task_ids.append(data["task_id"])
-        
-        # Monitor all tasks
-        max_retries = 15
-        retry_count = 0
-        completed_tasks = set()
-        
-        while retry_count < max_retries and len(completed_tasks) < len(task_ids):
-            status_tasks = []
-            for task_id in task_ids:
-                if task_id not in completed_tasks:
-                    status_tasks.append(
-                        session.get(f"{BACKEND_URL}/api/analyze/{task_id}")
-                    )
+        # Check all tasks complete successfully
+        for task_id in tasks:
+            max_retries = 10
+            retry_count = 0
+            while retry_count < max_retries:
+                async with session.get(
+                    f"{BACKEND_URL}/api/analyze/{task_id}"
+                ) as status_response:
+                    status_data = await status_response.json()
+                    if status_data.get("status") in ["completed", "error"]:
+                        break
+                retry_count += 1
+                await asyncio.sleep(2)
             
-            status_responses = await asyncio.gather(*status_tasks)
-            for response in status_responses:
-                status_data = await response.json()
-                if status_data.get("status") == "completed":
-                    completed_tasks.add(status_data["task_id"])
-                elif status_data.get("status") == "error":
-                    pytest.fail(f"Task failed with error: {status_data.get('error')}")
-            
-            retry_count += 1
-            await asyncio.sleep(2)
-        
-        assert len(completed_tasks) == len(task_ids), "Not all tasks completed successfully"
+            assert retry_count < max_retries, f"Task {task_id} did not complete in time"

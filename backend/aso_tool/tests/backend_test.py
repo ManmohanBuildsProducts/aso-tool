@@ -134,7 +134,6 @@ async def test_concurrent_tasks():
                 )
             )
         
-        # Start all tasks concurrently
         responses = await asyncio.gather(*tasks)
         task_ids = []
         

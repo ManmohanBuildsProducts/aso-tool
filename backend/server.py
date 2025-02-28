@@ -91,14 +91,13 @@ ranking_scheduler = RankingScheduler(db)
 keyword_analyzer = KeywordAnalyzer(db)
 ranking_analyzer = RankingAnalyzer(db, deepseek_analyzer)
 metadata_optimizer = MetadataOptimizer(db, deepseek_analyzer)
+analyzer = deepseek_analyzer
 
 @app.on_event("startup")
 async def startup_event():
     """Start the ranking scheduler on app startup"""
+    logger.info("Starting ASO Tool backend service...")
     asyncio.create_task(ranking_scheduler.start())
-
-# Initialize DeepSeek analyzer
-analyzer = deepseek_analyzer
 
 @app.post("/analyze/app/{app_id}")
 async def analyze_app(app_id: str, metadata: dict):

@@ -177,12 +177,16 @@ logger = logging.getLogger(__name__)
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
+# FastAPI app setup
+app = FastAPI(root_path="/api")
+
 # MongoDB connection
 mongo_url = os.environ.get('MONGO_URL', "")
 client = AsyncIOMotorClient(mongo_url)
 db = client.aso_tool
 
 # Create indexes
+@app.on_event("startup")
 async def setup_db():
     """Setup MongoDB indexes"""
     try:
@@ -195,15 +199,13 @@ async def setup_db():
         await db.app_cache.create_index("package_name", unique=True)
         await db.app_cache.create_index("updated_at")
         
+        # Cache collection
+        await db.cache.create_index([("key", 1), ("timestamp", 1)])
+        
         logger.info("MongoDB indexes created successfully")
     except Exception as e:
         logger.error(f"Error creating MongoDB indexes: {e}")
-
-# Setup database
-asyncio.create_task(setup_db())
-
-# FastAPI app setup
-app = FastAPI(root_path="/api")
+        raise
 
 app.add_middleware(
     CORSMiddleware,

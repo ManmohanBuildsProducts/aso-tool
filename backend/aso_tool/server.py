@@ -83,72 +83,108 @@ analysis_results = {}
 
 @app.post("/analyze")
 async def analyze_app(data: AppMetadata, background_tasks: BackgroundTasks):
+    """Start app analysis job"""
     try:
-        # Generate unique task ID
-        task_id = str(uuid4())
+        # Generate job ID
+        job_id = str(uuid4())
+        now = datetime.utcnow()
         
-        # Store initial state
-        analysis_results[task_id] = {
+        # Create job document
+        job = {
+            "job_id": job_id,
             "status": "processing",
-            "progress": 0,
-            "data": None,
-            "error": None
+            "created_at": now,
+            "updated_at": now,
+            "package_name": data.package_name,
+            "competitor_package_names": data.competitor_package_names,
+            "keywords": data.keywords
         }
         
-        # Start background task
-        background_tasks.add_task(process_analysis, task_id, data)
+        # Store in MongoDB
+        await db.jobs.insert_one(job)
+        logger.info(f"Created job {job_id} for {data.package_name}")
+        
+        # Start background processing
+        background_tasks.add_task(process_analysis, job_id, data)
         
         return {
-            "task_id": task_id,
+            "job_id": job_id,
             "status": "processing"
         }
         
     except Exception as e:
-        logger.error(f"Error in analyze_app: {e}")
+        logger.error(f"Error creating analysis job: {e}")
         return {"error": str(e)}
 
-@app.get("/analyze/{task_id}")
-async def get_analysis_result(task_id: str):
+@app.get("/analyze/{job_id}")
+async def get_analysis_result(job_id: str):
+    """Get analysis job status and results"""
     try:
-        if task_id not in analysis_results:
-            return {"error": "Task not found"}
+        # Get job from MongoDB
+        job = await db.jobs.find_one({"job_id": job_id})
+        if not job:
+            return {"error": "Job not found"}
             
-        result = analysis_results[task_id]
+        # Convert ObjectId to string for JSON serialization
+        if "_id" in job:
+            job["_id"] = str(job["_id"])
+            
+        # Check if job has expired (older than 24 hours)
+        if job["status"] == "completed":
+            age = datetime.utcnow() - job["updated_at"]
+            if age > timedelta(hours=24):
+                await db.jobs.delete_one({"job_id": job_id})
+                return {"error": "Job results expired"}
         
-        # Clean up completed tasks after 1 hour
-        if result["status"] == "completed" and "timestamp" in result:
-            if (datetime.utcnow() - result["timestamp"]).total_seconds() > 3600:
-                del analysis_results[task_id]
-                return {"error": "Task expired"}
-        
-        return result
+        return job
         
     except Exception as e:
-        logger.error(f"Error getting analysis result: {e}")
+        logger.error(f"Error getting job status: {e}")
         return {"error": str(e)}
 
-async def process_analysis(task_id: str, data: AppMetadata):
-    """Process app analysis task"""
+async def process_analysis(job_id: str, data: AppMetadata):
+    """Process app analysis job"""
     try:
-        logger.info(f"Starting analysis for task {task_id}")
+        logger.info(f"Starting analysis for job {job_id}")
         
-        # Update task status
-        analysis_results[task_id]["status"] = "processing"
-        analysis_results[task_id]["progress"] = 0
-        
-        # Get app metadata
+        # Get app metadata with cache check
         logger.info(f"Fetching app metadata for {data.package_name}")
-        app_data = await playstore.get_app_metadata(data.package_name)
-        if "error" in app_data:
-            logger.error(f"Error fetching app metadata: {app_data['error']}")
-            analysis_results[task_id].update({
-                "status": "error",
-                "error": app_data["error"]
-            })
-            return
+        cached_app = await db.app_cache.find_one({
+            "package_name": data.package_name,
+            "updated_at": {"$gte": datetime.utcnow() - timedelta(hours=24)}
+        })
+        
+        if cached_app:
+            logger.info("Using cached app metadata")
+            app_data = cached_app["data"]
+        else:
+            logger.info("Fetching fresh app metadata")
+            app_data = await playstore.get_app_metadata(data.package_name)
+            if "error" in app_data:
+                logger.error(f"Error fetching app metadata: {app_data['error']}")
+                await db.jobs.update_one(
+                    {"job_id": job_id},
+                    {
+                        "$set": {
+                            "status": "error",
+                            "error": app_data["error"],
+                            "updated_at": datetime.utcnow()
+                        }
+                    }
+                )
+                return
             
-        analysis_results[task_id]["progress"] = 20
-        logger.info("App metadata fetched successfully")
+            # Cache app data
+            await db.app_cache.update_one(
+                {"package_name": data.package_name},
+                {
+                    "$set": {
+                        "data": app_data,
+                        "updated_at": datetime.utcnow()
+                    }
+                },
+                upsert=True
+            )
         
         # Get competitor metadata if provided
         competitor_data = []
@@ -156,90 +192,110 @@ async def process_analysis(task_id: str, data: AppMetadata):
             logger.info("Fetching competitor metadata")
             for pkg_name in data.competitor_package_names:
                 try:
-                    comp_data = await playstore.get_app_metadata(pkg_name)
-                    if "error" not in comp_data:
-                        competitor_data.append(comp_data)
+                    # Check cache first
+                    cached_competitor = await db.app_cache.find_one({
+                        "package_name": pkg_name,
+                        "updated_at": {"$gte": datetime.utcnow() - timedelta(hours=24)}
+                    })
+                    
+                    if cached_competitor:
+                        logger.info(f"Using cached data for {pkg_name}")
+                        competitor_data.append(cached_competitor["data"])
+                    else:
+                        logger.info(f"Fetching fresh data for {pkg_name}")
+                        await asyncio.sleep(2)  # Rate limiting
+                        comp_data = await playstore.get_app_metadata(pkg_name)
+                        if "error" not in comp_data:
+                            competitor_data.append(comp_data)
+                            # Cache competitor data
+                            await db.app_cache.update_one(
+                                {"package_name": pkg_name},
+                                {
+                                    "$set": {
+                                        "data": comp_data,
+                                        "updated_at": datetime.utcnow()
+                                    }
+                                },
+                                upsert=True
+                            )
                 except Exception as e:
                     logger.warning(f"Error fetching competitor data for {pkg_name}: {e}")
         
-        analysis_results[task_id]["progress"] = 40
-        logger.info("Competitor metadata fetched successfully")
-        
-        # Process tasks concurrently
-        logger.info("Starting concurrent analysis tasks")
-        tasks = []
-        task_results = {}
-        
-        # Analyze app metadata
-        tasks.append(("app_analysis", deepseek.analyze_app_metadata(app_data)))
-        
-        # Analyze competitor data if available
-        if competitor_data:
-            tasks.append(("competitor_analysis", deepseek.analyze_competitor_metadata(app_data, competitor_data)))
-        
-        # Get keyword suggestions if provided
-        if data.keywords:
-            tasks.append(("keyword_suggestions", asyncio.gather(*[
-                deepseek.generate_keyword_suggestions(keyword)
-                for keyword in data.keywords
-            ])))
-        
-        # Get market trends
-        tasks.append(("market_trends", deepseek.analyze_market_trends()))
-        
-        # Optimize description
-        if data.keywords and app_data.get("description"):
-            tasks.append(("description_optimization", deepseek.optimize_description(
-                app_data.get("description", ""),
-                data.keywords
-            )))
-        
-        # Wait for all tasks to complete with timeout
-        logger.info("Waiting for analysis tasks to complete")
-        try:
-            for task_name, task in tasks:
-                try:
-                    result = await asyncio.wait_for(task, timeout=60)  # 60 seconds timeout
-                    task_results[task_name] = result
-                    analysis_results[task_id]["progress"] += int(40 / len(tasks))
-                    logger.info(f"Task {task_name} completed successfully")
-                except asyncio.TimeoutError:
-                    logger.error(f"Task {task_name} timed out")
-                    task_results[task_name] = {"error": "Task timed out"}
-                except Exception as e:
-                    logger.error(f"Error in task {task_name}: {e}")
-                    task_results[task_name] = {"error": str(e)}
-        except Exception as e:
-            logger.error(f"Error processing tasks: {e}")
-            analysis_results[task_id].update({
-                "status": "error",
-                "error": str(e)
-            })
-            return
-        
-        # Store final results
-        logger.info("Storing final results")
-        analysis_results[task_id].update({
-            "status": "completed",
-            "progress": 100,
-            "timestamp": datetime.utcnow(),
-            "data": {
-                "app_metadata": app_data,
-                "analysis": task_results.get("app_analysis"),
-                "competitor_analysis": task_results.get("competitor_analysis"),
-                "keyword_suggestions": task_results.get("keyword_suggestions"),
-                "market_trends": task_results.get("market_trends"),
-                "description_optimization": task_results.get("description_optimization")
+        # Update job with app and competitor data
+        await db.jobs.update_one(
+            {"job_id": job_id},
+            {
+                "$set": {
+                    "app_data": app_data,
+                    "competitor_data": competitor_data,
+                    "updated_at": datetime.utcnow()
+                }
             }
-        })
-        logger.info(f"Analysis completed for task {task_id}")
+        )
+        
+        # Run analysis with DeepSeek
+        logger.info("Starting DeepSeek analysis")
+        analysis_results = {}
+        
+        try:
+            # Analyze app metadata
+            app_analysis = await deepseek.analyze_app_metadata(app_data)
+            analysis_results["app_analysis"] = app_analysis
+            
+            # Analyze competitor data if available
+            if competitor_data:
+                competitor_analysis = await deepseek.analyze_competitor_metadata(app_data, competitor_data)
+                analysis_results["competitor_analysis"] = competitor_analysis
+            
+            # Get keyword suggestions if provided
+            if data.keywords:
+                keyword_suggestions = await asyncio.gather(*[
+                    deepseek.generate_keyword_suggestions(keyword)
+                    for keyword in data.keywords
+                ])
+                analysis_results["keyword_suggestions"] = keyword_suggestions
+            
+            # Get market trends
+            market_trends = await deepseek.analyze_market_trends()
+            analysis_results["market_trends"] = market_trends
+            
+            # Optimize description if keywords provided
+            if data.keywords and app_data.get("description"):
+                description_optimization = await deepseek.optimize_description(
+                    app_data.get("description", ""),
+                    data.keywords
+                )
+                analysis_results["description_optimization"] = description_optimization
+            
+        except Exception as e:
+            logger.error(f"Error in DeepSeek analysis: {e}")
+            analysis_results["error"] = str(e)
+        
+        # Update job with analysis results
+        await db.jobs.update_one(
+            {"job_id": job_id},
+            {
+                "$set": {
+                    "status": "completed",
+                    "analysis": analysis_results,
+                    "updated_at": datetime.utcnow()
+                }
+            }
+        )
+        logger.info(f"Analysis completed for job {job_id}")
         
     except Exception as e:
         logger.error(f"Error in process_analysis: {e}")
-        analysis_results[task_id].update({
-            "status": "error",
-            "error": str(e)
-        })
+        await db.jobs.update_one(
+            {"job_id": job_id},
+            {
+                "$set": {
+                    "status": "error",
+                    "error": str(e),
+                    "updated_at": datetime.utcnow()
+                }
+            }
+        )
 
 @app.get("/search")
 async def search_keyword(keyword: str, limit: int = 10):

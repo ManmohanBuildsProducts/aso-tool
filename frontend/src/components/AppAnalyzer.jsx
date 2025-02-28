@@ -112,51 +112,205 @@ const AppAnalyzer = () => {
         <div className="mt-8 space-y-6">
           <div>
             <h3 className="text-lg font-medium text-gray-900">App Metadata</h3>
-            <pre className="mt-2 p-4 bg-gray-100 rounded-md overflow-auto">
-              {JSON.stringify(data.app_metadata, null, 2)}
-            </pre>
+            <div className="mt-2 p-4 bg-gray-100 rounded-md">
+              <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <dt className="text-sm font-medium text-gray-500">Title</dt>
+                  <dd className="mt-1 text-sm text-gray-900">{data.app_metadata?.title || 'N/A'}</dd>
+                </div>
+                <div>
+                  <dt className="text-sm font-medium text-gray-500">Category</dt>
+                  <dd className="mt-1 text-sm text-gray-900">{data.app_metadata?.category || 'N/A'}</dd>
+                </div>
+                <div>
+                  <dt className="text-sm font-medium text-gray-500">Rating</dt>
+                  <dd className="mt-1 text-sm text-gray-900">{data.app_metadata?.rating || 'N/A'}</dd>
+                </div>
+                <div>
+                  <dt className="text-sm font-medium text-gray-500">Installs</dt>
+                  <dd className="mt-1 text-sm text-gray-900">{data.app_metadata?.installs || 'N/A'}</dd>
+                </div>
+              </dl>
+              <div className="mt-4">
+                <dt className="text-sm font-medium text-gray-500">Description</dt>
+                <dd className="mt-1 text-sm text-gray-900 whitespace-pre-wrap">
+                  {data.app_metadata?.description || 'N/A'}
+                </dd>
+              </div>
+            </div>
           </div>
 
-          <div>
-            <h3 className="text-lg font-medium text-gray-900">Analysis</h3>
-            <pre className="mt-2 p-4 bg-gray-100 rounded-md overflow-auto">
-              {JSON.stringify(data.analysis, null, 2)}
-            </pre>
-          </div>
+          {data.analysis?.analysis && (
+            <div>
+              <h3 className="text-lg font-medium text-gray-900">Analysis</h3>
+              <div className="mt-2 p-4 bg-gray-100 rounded-md">
+                <dl className="space-y-4">
+                  <div>
+                    <dt className="text-sm font-medium text-gray-500">Title Analysis</dt>
+                    <dd className="mt-1 text-sm text-gray-900">
+                      {data.analysis.analysis.title_analysis || 'N/A'}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-gray-500">Description Analysis</dt>
+                    <dd className="mt-1 text-sm text-gray-900">
+                      {data.analysis.analysis.description_analysis || 'N/A'}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-gray-500">Keyword Opportunities</dt>
+                    <dd className="mt-1 text-sm text-gray-900">
+                      {data.analysis.analysis.keyword_opportunities || 'N/A'}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-gray-500">Recommendations</dt>
+                    <dd className="mt-1 text-sm text-gray-900">
+                      {data.analysis.analysis.recommendations || 'N/A'}
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+            </div>
+          )}
 
-          {data.competitor_analysis && (
+          {data.competitor_analysis?.analysis && (
             <div>
               <h3 className="text-lg font-medium text-gray-900">Competitor Analysis</h3>
-              <pre className="mt-2 p-4 bg-gray-100 rounded-md overflow-auto">
-                {JSON.stringify(data.competitor_analysis, null, 2)}
-              </pre>
+              <div className="mt-2 p-4 bg-gray-100 rounded-md">
+                <dl className="space-y-4">
+                  <div>
+                    <dt className="text-sm font-medium text-gray-500">Competitive Analysis</dt>
+                    <dd className="mt-1 text-sm text-gray-900">
+                      {data.competitor_analysis.analysis.competitive_analysis || 'N/A'}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-gray-500">Keyword Comparison</dt>
+                    <dd className="mt-1 text-sm text-gray-900">
+                      {data.competitor_analysis.analysis.keyword_comparison || 'N/A'}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-gray-500">Description Comparison</dt>
+                    <dd className="mt-1 text-sm text-gray-900">
+                      {data.competitor_analysis.analysis.description_comparison || 'N/A'}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-gray-500">Market Position</dt>
+                    <dd className="mt-1 text-sm text-gray-900">
+                      {data.competitor_analysis.analysis.market_position || 'N/A'}
+                    </dd>
+                  </div>
+                </dl>
+              </div>
             </div>
           )}
 
-          {data.keyword_suggestions && (
+          {data.keyword_suggestions?.suggestions && (
             <div>
               <h3 className="text-lg font-medium text-gray-900">Keyword Suggestions</h3>
-              <pre className="mt-2 p-4 bg-gray-100 rounded-md overflow-auto">
-                {JSON.stringify(data.keyword_suggestions, null, 2)}
-              </pre>
+              <div className="mt-2 p-4 bg-gray-100 rounded-md">
+                <dl className="space-y-4">
+                  <div>
+                    <dt className="text-sm font-medium text-gray-500">Related Keywords</dt>
+                    <dd className="mt-1 text-sm text-gray-900">
+                      {Array.isArray(data.keyword_suggestions.suggestions.related_keywords)
+                        ? data.keyword_suggestions.suggestions.related_keywords.join(', ')
+                        : data.keyword_suggestions.suggestions.related_keywords || 'N/A'}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-gray-500">Long-tail Keywords</dt>
+                    <dd className="mt-1 text-sm text-gray-900">
+                      {Array.isArray(data.keyword_suggestions.suggestions.long_tail_keywords)
+                        ? data.keyword_suggestions.suggestions.long_tail_keywords.join(', ')
+                        : data.keyword_suggestions.suggestions.long_tail_keywords || 'N/A'}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-gray-500">Volume Estimates</dt>
+                    <dd className="mt-1 text-sm text-gray-900">
+                      {data.keyword_suggestions.suggestions.volume_estimates || 'N/A'}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-gray-500">Competition Levels</dt>
+                    <dd className="mt-1 text-sm text-gray-900">
+                      {data.keyword_suggestions.suggestions.competition_levels || 'N/A'}
+                    </dd>
+                  </div>
+                </dl>
+              </div>
             </div>
           )}
 
-          {data.market_trends && (
+          {data.market_trends?.trends && (
             <div>
               <h3 className="text-lg font-medium text-gray-900">Market Trends</h3>
-              <pre className="mt-2 p-4 bg-gray-100 rounded-md overflow-auto">
-                {JSON.stringify(data.market_trends, null, 2)}
-              </pre>
+              <div className="mt-2 p-4 bg-gray-100 rounded-md">
+                <dl className="space-y-4">
+                  <div>
+                    <dt className="text-sm font-medium text-gray-500">Market Trends</dt>
+                    <dd className="mt-1 text-sm text-gray-900">
+                      {data.market_trends.trends.market_trends || 'N/A'}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-gray-500">User Expectations</dt>
+                    <dd className="mt-1 text-sm text-gray-900">
+                      {data.market_trends.trends.user_expectations || 'N/A'}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-gray-500">Growth Opportunities</dt>
+                    <dd className="mt-1 text-sm text-gray-900">
+                      {data.market_trends.trends.growth_opportunities || 'N/A'}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-gray-500">Challenges</dt>
+                    <dd className="mt-1 text-sm text-gray-900">
+                      {data.market_trends.trends.challenges || 'N/A'}
+                    </dd>
+                  </div>
+                </dl>
+              </div>
             </div>
           )}
 
-          {data.description_optimization && (
+          {data.description_optimization?.optimization && (
             <div>
               <h3 className="text-lg font-medium text-gray-900">Description Optimization</h3>
-              <pre className="mt-2 p-4 bg-gray-100 rounded-md overflow-auto">
-                {JSON.stringify(data.description_optimization, null, 2)}
-              </pre>
+              <div className="mt-2 p-4 bg-gray-100 rounded-md">
+                <dl className="space-y-4">
+                  <div>
+                    <dt className="text-sm font-medium text-gray-500">Optimized Description</dt>
+                    <dd className="mt-1 text-sm text-gray-900 whitespace-pre-wrap">
+                      {data.description_optimization.optimization.optimized_description || 'N/A'}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-gray-500">Keyword Analysis</dt>
+                    <dd className="mt-1 text-sm text-gray-900">
+                      {data.description_optimization.optimization.keyword_analysis || 'N/A'}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-gray-500">Readability Score</dt>
+                    <dd className="mt-1 text-sm text-gray-900">
+                      {data.description_optimization.optimization.readability_score || 'N/A'}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-gray-500">Suggestions</dt>
+                    <dd className="mt-1 text-sm text-gray-900">
+                      {data.description_optimization.optimization.suggestions || 'N/A'}
+                    </dd>
+                  </div>
+                </dl>
+              </div>
             </div>
           )}
         </div>

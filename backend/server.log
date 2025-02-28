@@ -63,3 +63,14 @@ INFO:     127.0.0.1:52286 - "GET / HTTP/1.1" 200 OK
 2025-02-28 12:21:46,767 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
 2025-02-28 12:22:06,636 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
 INFO:     127.0.0.1:39054 - "POST /api/analyze HTTP/1.1" 200 OK
+2025-02-28 12:22:23,569 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 12:22:23,572 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+INFO:     127.0.0.1:54548 - "OPTIONS /api/analyze HTTP/1.1" 200 OK
+2025-02-28 12:22:50,713 - aso_tool.external_integrations.playstore_scraper - ERROR - Error fetching page: 404
+INFO:     127.0.0.1:54556 - "POST /api/analyze HTTP/1.1" 200 OK
+2025-02-28 12:22:52,683 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 12:22:52,684 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 12:23:24,670 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 12:23:24,670 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 12:23:47,263 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 12:23:47,264 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API

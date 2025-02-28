@@ -8,6 +8,8 @@ import logging
 from pathlib import Path
 from typing import Dict, List, Optional
 from pydantic import BaseModel
+from external_integrations.deepseek_analyzer import DeepseekAnalyzer
+from external_integrations.playstore_scraper import PlayStoreScraper
 
 # Setup logging
 logging.basicConfig(
@@ -37,111 +39,93 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize DeepSeek analyzer
-from deepseek_analyzer import DeepseekAnalyzer
-analyzer = DeepseekAnalyzer()
+# Initialize analyzers
+deepseek = DeepseekAnalyzer()
+playstore = PlayStoreScraper()
 
-# Pydantic models
 class AppMetadata(BaseModel):
-    title: str
-    description: str
-    category: str
-    keywords: List[str]
-    package_name: Optional[str] = None
-    ratings: Optional[Dict] = None
-    installs: Optional[str] = None
+    package_name: str
+    competitor_package_names: Optional[List[str]] = None
+    keywords: Optional[List[str]] = None
 
-class KeywordRequest(BaseModel):
-    base_keyword: str
-    industry: Optional[str] = "B2B wholesale"
+@app.get("/")
+async def root():
+    return {"message": "ASO Tool API"}
 
-class CompetitorRequest(BaseModel):
-    app_metadata: Dict
-    competitor_metadata: List[Dict]
-
-class DescriptionRequest(BaseModel):
-    current_description: str
-    keywords: List[str]
-
-class TrendRequest(BaseModel):
-    category: Optional[str] = "B2B wholesale"
-
-@app.post("/api/analyze/app/{app_id}")
-async def analyze_app(app_id: str, metadata: AppMetadata):
-    """Analyze app metadata and provide ASO recommendations"""
+@app.post("/api/analyze")
+async def analyze_app(data: AppMetadata):
     try:
-        logger.info(f"Analyzing app: {app_id}")
-        result = await analyzer.analyze_app_metadata(metadata.dict())
-        return result
+        # Get app metadata
+        app_data = await playstore.get_app_metadata(data.package_name)
+        if "error" in app_data:
+            return {"error": app_data["error"]}
+            
+        # Get competitor metadata if provided
+        competitor_data = []
+        if data.competitor_package_names:
+            for pkg_name in data.competitor_package_names:
+                comp_data = await playstore.get_app_metadata(pkg_name)
+                if "error" not in comp_data:
+                    competitor_data.append(comp_data)
+        
+        # Analyze app metadata
+        analysis = await deepseek.analyze_app_metadata(app_data)
+        
+        # Analyze competitor data if available
+        competitor_analysis = None
+        if competitor_data:
+            competitor_analysis = await deepseek.analyze_competitor_metadata(app_data, competitor_data)
+        
+        # Get keyword suggestions if provided
+        keyword_suggestions = []
+        if data.keywords:
+            for keyword in data.keywords:
+                suggestion = await deepseek.generate_keyword_suggestions(keyword)
+                if "error" not in suggestion:
+                    keyword_suggestions.append(suggestion)
+        
+        # Get market trends
+        market_trends = await deepseek.analyze_market_trends()
+        
+        # Optimize description
+        description_optimization = None
+        if data.keywords:
+            description_optimization = await deepseek.optimize_description(
+                app_data.get("description", ""),
+                data.keywords
+            )
+        
+        return {
+            "app_metadata": app_data,
+            "analysis": analysis,
+            "competitor_analysis": competitor_analysis,
+            "keyword_suggestions": keyword_suggestions,
+            "market_trends": market_trends,
+            "description_optimization": description_optimization
+        }
+        
     except Exception as e:
-        logger.error(f"Error analyzing app: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Error in analyze_app: {e}")
+        return {"error": str(e)}
 
-@app.post("/api/analyze/keywords")
-async def analyze_keywords(request: KeywordRequest):
-    """Generate keyword suggestions and analysis"""
+@app.get("/api/search")
+async def search_keyword(keyword: str, limit: int = 10):
     try:
-        logger.info(f"Analyzing keywords: {request.base_keyword}")
-        result = await analyzer.generate_keyword_suggestions(
-            request.base_keyword,
-            request.industry
-        )
-        return result
+        results = await playstore.search_keywords(keyword, limit)
+        return {"results": results}
     except Exception as e:
-        logger.error(f"Error analyzing keywords: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Error in search_keyword: {e}")
+        return {"error": str(e)}
 
-@app.post("/api/analyze/competitors")
-async def analyze_competitors(request: CompetitorRequest):
-    """Analyze competitor metadata and provide insights"""
+@app.get("/api/similar")
+async def get_similar_apps(package_name: str, limit: int = 5):
     try:
-        logger.info("Analyzing competitors")
-        result = await analyzer.analyze_competitor_metadata(
-            request.app_metadata,
-            request.competitor_metadata
-        )
-        return result
+        results = await playstore.get_similar_apps(package_name, limit)
+        return {"results": results}
     except Exception as e:
-        logger.error(f"Error analyzing competitors: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.post("/api/optimize/description")
-async def optimize_description(request: DescriptionRequest):
-    """Optimize app description using AI analysis"""
-    try:
-        logger.info("Optimizing description")
-        result = await analyzer.optimize_description(
-            request.current_description,
-            request.keywords
-        )
-        return result
-    except Exception as e:
-        logger.error(f"Error optimizing description: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.post("/api/analyze/trends")
-async def analyze_trends(request: TrendRequest):
-    """Analyze market trends and provide insights"""
-    try:
-        logger.info(f"Analyzing trends for category: {request.category}")
-        result = await analyzer.analyze_market_trends(request.category)
-        return result
-    except Exception as e:
-        logger.error(f"Error analyzing trends: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.get("/api/health")
-async def health_check():
-    """Health check endpoint"""
-    return {"status": "healthy", "service": "aso-tool-backend"}
-
-@app.on_event("startup")
-async def startup_event():
-    """Startup event handler"""
-    logger.info("Starting ASO Tool backend service...")
+        logger.error(f"Error in get_similar_apps: {e}")
+        return {"error": str(e)}
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
-    """Shutdown event handler"""
-    logger.info("Shutting down ASO Tool backend service...")
     client.close()

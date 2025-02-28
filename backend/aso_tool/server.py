@@ -229,12 +229,23 @@ async def setup_db():
         logger.error(f"Error creating MongoDB indexes: {e}")
         raise
 
+# Configure CORS
+origins = [
+    "http://localhost:3000",      # Local development
+    "http://localhost:8001",      # Local backend
+    "http://localhost",           # Local without port
+    "https://localhost",          # Local HTTPS
+    "*"                          # Allow all origins for development
+]
+
 app.add_middleware(
     CORSMiddleware,
+    allow_origins=origins,
     allow_credentials=True,
-    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
+    max_age=3600
 )
 
 # Initialize analyzers

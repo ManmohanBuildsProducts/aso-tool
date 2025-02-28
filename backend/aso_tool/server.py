@@ -56,46 +56,74 @@ async def analyze_task(task_name: str, task_data: Dict) -> Dict:
         return {"error": str(e)}
 
 # Constants
-RATE_LIMIT_REQUESTS = 10  # Number of requests allowed
+RATE_LIMIT_REQUESTS = 30  # Number of requests allowed
 RATE_LIMIT_WINDOW = 60    # Time window in seconds
 JOB_TIMEOUT = 300        # Job timeout in seconds
 CACHE_DURATION = 24 * 60 * 60  # Cache duration in seconds (24 hours)
 
 # Rate limiting state
-rate_limit_state = {
-    "requests": [],
-    "last_cleanup": time.time()
-}
+rate_limit_state = {}
 
 def rate_limit():
-    """Rate limiting decorator"""
+    """Rate limiting decorator using Redis-like approach with MongoDB"""
     def decorator(func):
         @wraps(func)
         async def wrapper(*args, **kwargs):
-            current_time = time.time()
-            
-            # Cleanup old requests
-            if current_time - rate_limit_state["last_cleanup"] > RATE_LIMIT_WINDOW:
-                rate_limit_state["requests"] = [
-                    t for t in rate_limit_state["requests"]
-                    if current_time - t < RATE_LIMIT_WINDOW
-                ]
-                rate_limit_state["last_cleanup"] = current_time
-            
-            # Check rate limit
-            if len(rate_limit_state["requests"]) >= RATE_LIMIT_REQUESTS:
-                oldest_request = min(rate_limit_state["requests"])
-                if current_time - oldest_request < RATE_LIMIT_WINDOW:
+            try:
+                # Get client IP (using first argument as request)
+                request = args[0] if args else None
+                client_ip = request.client.host if request else "unknown"
+                
+                # Create rate limit key
+                current_time = int(time.time())
+                window_start = current_time - RATE_LIMIT_WINDOW
+                rate_key = f"rate_limit:{client_ip}"
+                
+                # Get current request count from MongoDB
+                result = await db.rate_limits.find_one({"key": rate_key})
+                requests = result["requests"] if result else []
+                
+                # Clean old requests
+                requests = [t for t in requests if t >= window_start]
+                
+                # Check rate limit
+                if len(requests) >= RATE_LIMIT_REQUESTS:
+                    oldest_request = min(requests)
                     wait_time = RATE_LIMIT_WINDOW - (current_time - oldest_request)
                     raise HTTPException(
                         status_code=429,
-                        detail=f"Rate limit exceeded. Please wait {int(wait_time)} seconds."
+                        detail={
+                            "error": "Rate limit exceeded",
+                            "wait_seconds": wait_time,
+                            "message": f"Too many requests. Please wait {wait_time} seconds."
+                        }
                     )
-            
-            # Add current request
-            rate_limit_state["requests"].append(current_time)
-            
-            return await func(*args, **kwargs)
+                
+                # Add current request
+                requests.append(current_time)
+                
+                # Update MongoDB
+                await db.rate_limits.update_one(
+                    {"key": rate_key},
+                    {
+                        "$set": {
+                            "requests": requests,
+                            "updated_at": datetime.utcnow()
+                        }
+                    },
+                    upsert=True
+                )
+                
+                # Execute function
+                return await func(*args, **kwargs)
+                
+            except HTTPException:
+                raise
+            except Exception as e:
+                logger.error(f"Error in rate limit: {e}")
+                # Continue execution on rate limit errors
+                return await func(*args, **kwargs)
+                
         return wrapper
     return decorator
 
@@ -204,44 +232,76 @@ app = FastAPI(root_path="/api")
 
 # MongoDB connection
 mongo_url = os.environ.get('MONGO_URL', "")
-client = AsyncIOMotorClient(mongo_url)
-db = client.aso_tool
+if not mongo_url:
+    raise ValueError("MONGO_URL environment variable not set")
 
-# Create indexes
+# Global variables for MongoDB
+client = None
+db = None
+
 @app.on_event("startup")
 async def setup_db():
-    """Setup MongoDB indexes"""
+    """Setup MongoDB connection and indexes"""
     try:
-        # Jobs collection
-        await db.jobs.create_index("job_id", unique=True)
-        await db.jobs.create_index("updated_at")
-        await db.jobs.create_index("status")
+        # Initialize global variables
+        global client, db
         
-        # App cache collection
-        await db.app_cache.create_index("package_name", unique=True)
-        await db.app_cache.create_index("updated_at")
+        # Create MongoDB client with proper settings
+        client = AsyncIOMotorClient(
+            mongo_url,
+            serverSelectionTimeoutMS=5000,  # 5 seconds timeout
+            connectTimeoutMS=10000,         # 10 seconds timeout
+            socketTimeoutMS=30000,          # 30 seconds timeout
+            maxPoolSize=50,                 # Maximum connection pool size
+            minPoolSize=10,                 # Minimum connection pool size
+            maxIdleTimeMS=30000,           # Maximum idle time
+            waitQueueTimeoutMS=10000       # Wait queue timeout
+        )
         
-        # Cache collection
-        await db.cache.create_index([("key", 1), ("timestamp", 1)])
+        # Test connection
+        await client.admin.command('ping')
+        logger.info("Successfully connected to MongoDB")
+        
+        # Set database
+        db = client.aso_tool
+        
+        # Create indexes
+        await asyncio.gather(
+            # Jobs collection
+            db.jobs.create_index("job_id", unique=True),
+            db.jobs.create_index("updated_at"),
+            db.jobs.create_index("status"),
+            
+            # App cache collection
+            db.app_cache.create_index("package_name", unique=True),
+            db.app_cache.create_index("updated_at"),
+            
+            # Cache collection
+            db.cache.create_index([("key", 1), ("timestamp", 1)]),
+            
+            # Rate limiting collection
+            db.rate_limits.create_index("key", unique=True),
+            db.rate_limits.create_index("updated_at", expireAfterSeconds=RATE_LIMIT_WINDOW)
+        )
         
         logger.info("MongoDB indexes created successfully")
+        
     except Exception as e:
-        logger.error(f"Error creating MongoDB indexes: {e}")
+        logger.error(f"Error setting up MongoDB: {e}")
         raise
 
-# Configure CORS
-origins = [
-    "http://localhost:3000",      # Local development
-    "http://localhost:8001",      # Local backend
-    "http://localhost",           # Local without port
-    "https://localhost",          # Local HTTPS
-    "*"                          # Allow all origins for development
-]
+@app.on_event("shutdown")
+async def cleanup():
+    """Cleanup MongoDB connection"""
+    if client:
+        client.close()
+        logger.info("MongoDB connection closed")
 
+# Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
+    allow_origins=["*"],  # In production, replace with specific origins
+    allow_credentials=False,  # Set to False when using allow_origins=["*"]
     allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=["*"],

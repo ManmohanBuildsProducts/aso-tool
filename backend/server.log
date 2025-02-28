@@ -902,3 +902,67 @@ INFO:     127.0.0.1:49280 - "GET /api/analyze/832ab683-208c-4409-860d-3c05a27f00
 2025-02-28 14:51:32,933 - aso_tool.external_integrations.deepseek_analyzer - ERROR - Error parsing JSON response: Expecting value: line 1 column 1 (char 0)
 2025-02-28 14:51:32,933 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
 2025-02-28 14:51:32,933 - aso_tool.external_integrations.deepseek_analyzer - ERROR - Error parsing JSON response: Expecting value: line 1 column 1 (char 0)
+INFO:     127.0.0.1:39470 - "OPTIONS /api/analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39480 - "POST /api/analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39480 - "POST /api/analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39480 - "POST /api/analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39480 - "POST /api/analyze HTTP/1.1" 200 OK
+2025-02-28 14:56:03,056 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 14:56:03,056 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 14:56:03,056 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 14:56:03,056 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 14:56:03,056 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 14:56:03,056 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 14:56:03,056 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 14:56:03,964 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 14:56:03,964 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 14:56:03,964 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 14:56:03,964 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 14:56:03,964 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 14:56:03,964 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 14:56:03,964 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 14:56:05,588 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 14:56:05,588 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 14:56:05,588 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 14:56:05,588 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 14:56:05,588 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 14:56:05,589 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 14:56:05,589 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 14:57:02,119 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 14:57:16,821 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 14:57:21,529 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 14:57:28,628 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 14:57:34,554 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 14:57:36,390 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 14:57:36,390 - aso_tool.external_integrations.deepseek_analyzer - ERROR - Error parsing JSON response: Expecting value: line 1 column 1 (char 0)
+2025-02-28 14:57:38,008 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 14:58:34,059 - aso_tool.external_integrations.deepseek_analyzer - ERROR - Error making Deepseek request: Response payload is not completed: <TransferEncodingError: 400, message='Not enough data for satisfy transfer length header.'>
+2025-02-28 14:58:34,059 - aso_tool.external_integrations.deepseek_analyzer - ERROR - Error making Deepseek request: Response payload is not completed: <TransferEncodingError: 400, message='Not enough data for satisfy transfer length header.'>
+2025-02-28 14:58:34,079 - aso_tool.external_integrations.deepseek_analyzer - ERROR - Error making Deepseek request: Response payload is not completed: <TransferEncodingError: 400, message='Not enough data for satisfy transfer length header.'>
+2025-02-28 14:58:34,079 - aso_tool.external_integrations.deepseek_analyzer - ERROR - Error making Deepseek request: Response payload is not completed: <TransferEncodingError: 400, message='Not enough data for satisfy transfer length header.'>
+2025-02-28 14:58:34,079 - aso_tool.external_integrations.deepseek_analyzer - ERROR - Error making Deepseek request: Response payload is not completed: <TransferEncodingError: 400, message='Not enough data for satisfy transfer length header.'>
+2025-02-28 14:58:34,079 - aso_tool.external_integrations.deepseek_analyzer - ERROR - Error making Deepseek request: Response payload is not completed: <TransferEncodingError: 400, message='Not enough data for satisfy transfer length header.'>
+2025-02-28 14:58:34,084 - aso_tool.external_integrations.deepseek_analyzer - ERROR - Error making Deepseek request: Response payload is not completed: <TransferEncodingError: 400, message='Not enough data for satisfy transfer length header.'>
+2025-02-28 14:58:34,470 - aso_tool.external_integrations.deepseek_analyzer - ERROR - Error making Deepseek request: Response payload is not completed: <TransferEncodingError: 400, message='Not enough data for satisfy transfer length header.'>
+2025-02-28 14:58:34,583 - aso_tool.external_integrations.deepseek_analyzer - ERROR - Error making Deepseek request: Response payload is not completed: <TransferEncodingError: 400, message='Not enough data for satisfy transfer length header.'>
+2025-02-28 14:58:34,592 - aso_tool.external_integrations.deepseek_analyzer - ERROR - Error making Deepseek request: Response payload is not completed: <TransferEncodingError: 400, message='Not enough data for satisfy transfer length header.'>
+2025-02-28 14:58:34,592 - aso_tool.external_integrations.deepseek_analyzer - ERROR - Error making Deepseek request: Response payload is not completed: <TransferEncodingError: 400, message='Not enough data for satisfy transfer length header.'>
+2025-02-28 14:58:34,592 - aso_tool.external_integrations.deepseek_analyzer - ERROR - Error making Deepseek request: Response payload is not completed: <TransferEncodingError: 400, message='Not enough data for satisfy transfer length header.'>
+2025-02-28 14:58:34,599 - aso_tool.external_integrations.deepseek_analyzer - ERROR - Error making Deepseek request: Response payload is not completed: <TransferEncodingError: 400, message='Not enough data for satisfy transfer length header.'>
+2025-02-28 14:58:34,989 - aso_tool.external_integrations.deepseek_analyzer - ERROR - Error making Deepseek request: Response payload is not completed: <TransferEncodingError: 400, message='Not enough data for satisfy transfer length header.'>
+2025-02-28 14:58:35,637 - aso_tool.external_integrations.playstore_scraper - ERROR - Error in _fetch_page: Response payload is not completed: <TransferEncodingError: 400, message='Not enough data for satisfy transfer length header.'>
+2025-02-28 14:58:35,638 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 14:58:35,639 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 14:58:35,639 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 14:58:35,640 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 14:58:35,640 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 14:58:35,640 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 14:58:35,640 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 14:59:00,777 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 14:59:02,644 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 14:59:17,121 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 14:59:23,633 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 14:59:34,614 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 14:59:35,941 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 14:59:35,941 - aso_tool.external_integrations.deepseek_analyzer - ERROR - Error parsing JSON response: Expecting value: line 1 column 1 (char 0)
+2025-02-28 14:59:42,679 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200

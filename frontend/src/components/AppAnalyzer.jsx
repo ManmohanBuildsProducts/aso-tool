@@ -22,8 +22,7 @@ const AppAnalyzer = () => {
             'Content-Type': 'application/json',
             'Accept': 'application/json'
           },
-          body: JSON.stringify(appData),
-          credentials: 'include'
+          body: JSON.stringify(appData)
         });
 
         if (!response.ok) {
@@ -77,8 +76,7 @@ const AppAnalyzer = () => {
           {
             headers: {
               'Accept': 'application/json'
-            },
-            credentials: 'include'
+            }
           }
         );
 

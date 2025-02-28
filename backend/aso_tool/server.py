@@ -1,20 +1,21 @@
-from fastapi import FastAPI, HTTPException, BackgroundTasks, APIRouter
+from fastapi import FastAPI, APIRouter, HTTPException, BackgroundTasks
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import uvicorn
 import os
 import logging
-import sys
 from pathlib import Path
 from typing import Dict, List, Optional
 from pydantic import BaseModel
 from datetime import datetime
+import sys
+from pathlib import Path
 from uuid import uuid4
 import asyncio
 
 # Add backend directory to Python path
-sys.path.append(str(Path(__file__).parent))
+sys.path.append(str(Path(__file__).parent.parent))
 
 from aso_tool.external_integrations.deepseek_analyzer import DeepseekAnalyzer
 from aso_tool.external_integrations.playstore_scraper import PlayStoreScraper
@@ -59,7 +60,7 @@ class AppMetadata(BaseModel):
     competitor_package_names: Optional[List[str]] = None
     keywords: Optional[List[str]] = None
 
-@api_router.get("")
+@api_router.get("/")
 async def root():
     return {"message": "ASO Tool API"}
 

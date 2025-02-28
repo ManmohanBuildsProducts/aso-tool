@@ -50,10 +50,19 @@ const Dashboard = ({ appId }) => {
   // Show loading state
   if (isLoadingApp || isLoadingKeywords || isLoadingCompetitors) {
     return (
-      <div className="space-y-6">
-        <LoadingState message="Analyzing app data..." />
-        <LoadingState message="Analyzing keywords..." />
-        <LoadingState message="Analyzing competitors..." />
+      <div className="space-y-6" data-testid="dashboard-loading">
+        <LoadingState 
+          message="Analyzing app data..." 
+          testId="aso-score-loading"
+        />
+        <LoadingState 
+          message="Analyzing keywords..." 
+          testId="keyword-loading"
+        />
+        <LoadingState 
+          message="Analyzing competitors..." 
+          testId="competitor-loading"
+        />
       </div>
     );
   }

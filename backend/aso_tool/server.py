@@ -211,110 +211,197 @@ async def root():
 # Store analysis results
 analysis_results = {}
 
-@app.post("/analyze")
-async def analyze_app(data: AppMetadata, background_tasks: BackgroundTasks):
+@app.post("/analyze", response_model=JobResponse)
+@rate_limit()
+async def analyze_app(data: AnalysisRequest, background_tasks: BackgroundTasks) -> JobResponse:
     """Start app analysis job"""
     try:
-        # Generate job ID
+        # Generate job ID and timestamps
         job_id = str(uuid4())
         now = datetime.utcnow()
         
         # Create job document
         job = {
             "job_id": job_id,
-            "status": "processing",
+            "status": JobStatus.PENDING,
+            "progress": 0,
             "created_at": now,
             "updated_at": now,
             "package_name": data.package_name,
             "competitor_package_names": data.competitor_package_names,
-            "keywords": data.keywords
+            "keywords": data.keywords,
+            "timeout_at": now + timedelta(seconds=JOB_TIMEOUT)
         }
+        
+        # Check cache first
+        cache_key = f"analysis_{data.package_name}"
+        cached_result = await get_cached_result(cache_key, db)
+        
+        if cached_result:
+            logger.info(f"Using cached result for {data.package_name}")
+            job.update({
+                "status": JobStatus.COMPLETED,
+                "progress": 100,
+                "data": cached_result
+            })
+        else:
+            logger.info(f"Starting new analysis for {data.package_name}")
+            job["status"] = JobStatus.PROCESSING
+            background_tasks.add_task(process_analysis, job_id, data)
         
         # Store in MongoDB
         await db.jobs.insert_one(job)
         logger.info(f"Created job {job_id} for {data.package_name}")
         
-        # Start background processing
-        background_tasks.add_task(process_analysis, job_id, data)
+        # Convert to response model
+        response = JobResponse(
+            job_id=job_id,
+            status=job["status"],
+            progress=job["progress"],
+            data=job.get("data"),
+            error=job.get("error"),
+            created_at=job["created_at"],
+            updated_at=job["updated_at"]
+        )
         
-        return {
-            "job_id": job_id,
-            "status": "processing"
-        }
+        return response
         
     except Exception as e:
         logger.error(f"Error creating analysis job: {e}")
-        return {"error": str(e)}
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
 
-@app.get("/analyze/{job_id}")
-async def get_analysis_result(job_id: str):
+@app.get("/analyze/{job_id}", response_model=JobResponse)
+@rate_limit()
+async def get_analysis_result(job_id: str) -> JobResponse:
     """Get analysis job status and results"""
     try:
         # Get job from MongoDB
         job = await db.jobs.find_one({"job_id": job_id})
         if not job:
-            return {"error": "Job not found"}
+            raise HTTPException(
+                status_code=404,
+                detail="Job not found"
+            )
             
         # Convert ObjectId to string for JSON serialization
         if "_id" in job:
             job["_id"] = str(job["_id"])
             
-        # Check if job has expired (older than 24 hours)
-        if job["status"] == "completed":
+        # Check if job has expired
+        if job["status"] == JobStatus.COMPLETED:
             age = datetime.utcnow() - job["updated_at"]
-            if age > timedelta(hours=24):
+            if age > timedelta(seconds=CACHE_DURATION):
                 await db.jobs.delete_one({"job_id": job_id})
-                return {"error": "Job results expired"}
+                raise HTTPException(
+                    status_code=404,
+                    detail="Job results expired"
+                )
         
-        return job
-        
-    except Exception as e:
-        logger.error(f"Error getting job status: {e}")
-        return {"error": str(e)}
-
-async def process_analysis(job_id: str, data: AppMetadata):
-    """Process app analysis job"""
-    try:
-        logger.info(f"Starting analysis for job {job_id}")
-        
-        # Get app metadata with cache check
-        logger.info(f"Fetching app metadata for {data.package_name}")
-        cached_app = await db.app_cache.find_one({
-            "package_name": data.package_name,
-            "updated_at": {"$gte": datetime.utcnow() - timedelta(hours=24)}
-        })
-        
-        if cached_app:
-            logger.info("Using cached app metadata")
-            app_data = cached_app["data"]
-        else:
-            logger.info("Fetching fresh app metadata")
-            app_data = await playstore.get_app_metadata(data.package_name)
-            if "error" in app_data:
-                logger.error(f"Error fetching app metadata: {app_data['error']}")
+        # Check for timeout
+        if job["status"] == JobStatus.PROCESSING:
+            if datetime.utcnow() > job["timeout_at"]:
+                # Update job status to timeout
                 await db.jobs.update_one(
                     {"job_id": job_id},
                     {
                         "$set": {
-                            "status": "error",
-                            "error": app_data["error"],
+                            "status": JobStatus.TIMEOUT,
+                            "error": "Job timed out",
+                            "updated_at": datetime.utcnow()
+                        }
+                    }
+                )
+                job.update({
+                    "status": JobStatus.TIMEOUT,
+                    "error": "Job timed out",
+                    "updated_at": datetime.utcnow()
+                })
+        
+        # Convert to response model
+        response = JobResponse(
+            job_id=job["job_id"],
+            status=JobStatus(job["status"]),
+            progress=job.get("progress", 0),
+            data=job.get("data"),
+            error=job.get("error"),
+            created_at=job["created_at"],
+            updated_at=job["updated_at"]
+        )
+        
+        return response
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting job status: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+
+async def process_analysis(job_id: str, data: AnalysisRequest):
+    """Process app analysis job"""
+    try:
+        logger.info(f"Starting analysis for job {job_id}")
+        
+        # Update job status to processing
+        await db.jobs.update_one(
+            {"job_id": job_id},
+            {
+                "$set": {
+                    "status": JobStatus.PROCESSING,
+                    "updated_at": datetime.utcnow()
+                }
+            }
+        )
+        
+        # Get app metadata with cache check
+        logger.info(f"Fetching app metadata for {data.package_name}")
+        cache_key = f"app_{data.package_name}"
+        app_data = await get_cached_result(cache_key, db)
+        
+        if not app_data:
+            logger.info("Fetching fresh app metadata")
+            try:
+                app_data = await asyncio.wait_for(
+                    playstore.get_app_metadata(data.package_name),
+                    timeout=30  # 30 seconds timeout
+                )
+                if "error" in app_data:
+                    raise Exception(app_data["error"])
+                
+                # Cache app data
+                await cache_result(cache_key, app_data, db)
+            except TimeoutError:
+                raise Exception("Timeout fetching app metadata")
+            except Exception as e:
+                logger.error(f"Error fetching app metadata: {e}")
+                await db.jobs.update_one(
+                    {"job_id": job_id},
+                    {
+                        "$set": {
+                            "status": JobStatus.ERROR,
+                            "error": str(e),
                             "updated_at": datetime.utcnow()
                         }
                     }
                 )
                 return
-            
-            # Cache app data
-            await db.app_cache.update_one(
-                {"package_name": data.package_name},
-                {
-                    "$set": {
-                        "data": app_data,
-                        "updated_at": datetime.utcnow()
-                    }
-                },
-                upsert=True
-            )
+        
+        # Update progress
+        await db.jobs.update_one(
+            {"job_id": job_id},
+            {
+                "$set": {
+                    "progress": 20,
+                    "app_data": app_data,
+                    "updated_at": datetime.utcnow()
+                }
+            }
+        )
         
         # Get competitor metadata if provided
         competitor_data = []
@@ -323,40 +410,38 @@ async def process_analysis(job_id: str, data: AppMetadata):
             for pkg_name in data.competitor_package_names:
                 try:
                     # Check cache first
-                    cached_competitor = await db.app_cache.find_one({
-                        "package_name": pkg_name,
-                        "updated_at": {"$gte": datetime.utcnow() - timedelta(hours=24)}
-                    })
+                    cache_key = f"app_{pkg_name}"
+                    comp_data = await get_cached_result(cache_key, db)
                     
-                    if cached_competitor:
-                        logger.info(f"Using cached data for {pkg_name}")
-                        competitor_data.append(cached_competitor["data"])
-                    else:
+                    if not comp_data:
                         logger.info(f"Fetching fresh data for {pkg_name}")
                         await asyncio.sleep(2)  # Rate limiting
-                        comp_data = await playstore.get_app_metadata(pkg_name)
-                        if "error" not in comp_data:
-                            competitor_data.append(comp_data)
-                            # Cache competitor data
-                            await db.app_cache.update_one(
-                                {"package_name": pkg_name},
-                                {
-                                    "$set": {
-                                        "data": comp_data,
-                                        "updated_at": datetime.utcnow()
-                                    }
-                                },
-                                upsert=True
-                            )
+                        comp_data = await asyncio.wait_for(
+                            playstore.get_app_metadata(pkg_name),
+                            timeout=30  # 30 seconds timeout
+                        )
+                        if "error" in comp_data:
+                            logger.warning(f"Error in competitor data: {comp_data['error']}")
+                            continue
+                        
+                        # Cache competitor data
+                        await cache_result(cache_key, comp_data, db)
+                    
+                    competitor_data.append(comp_data)
+                    
+                except TimeoutError:
+                    logger.warning(f"Timeout fetching competitor data for {pkg_name}")
+                    continue
                 except Exception as e:
                     logger.warning(f"Error fetching competitor data for {pkg_name}: {e}")
+                    continue
         
-        # Update job with app and competitor data
+        # Update progress
         await db.jobs.update_one(
             {"job_id": job_id},
             {
                 "$set": {
-                    "app_data": app_data,
+                    "progress": 40,
                     "competitor_data": competitor_data,
                     "updated_at": datetime.utcnow()
                 }
@@ -368,46 +453,95 @@ async def process_analysis(job_id: str, data: AppMetadata):
         analysis_results = {}
         
         try:
-            # Analyze app metadata
-            app_analysis = await deepseek.analyze_app_metadata(app_data)
-            analysis_results["app_analysis"] = app_analysis
+            # Run analyses concurrently with timeouts
+            tasks = []
             
-            # Analyze competitor data if available
-            if competitor_data:
-                competitor_analysis = await deepseek.analyze_competitor_metadata(app_data, competitor_data)
-                analysis_results["competitor_analysis"] = competitor_analysis
-            
-            # Get keyword suggestions if provided
-            if data.keywords:
-                keyword_suggestions = await asyncio.gather(*[
-                    deepseek.generate_keyword_suggestions(keyword)
-                    for keyword in data.keywords
-                ])
-                analysis_results["keyword_suggestions"] = keyword_suggestions
-            
-            # Get market trends
-            market_trends = await deepseek.analyze_market_trends()
-            analysis_results["market_trends"] = market_trends
-            
-            # Optimize description if keywords provided
-            if data.keywords and app_data.get("description"):
-                description_optimization = await deepseek.optimize_description(
-                    app_data.get("description", ""),
-                    data.keywords
+            # App analysis
+            tasks.append(("app_analysis", asyncio.create_task(
+                asyncio.wait_for(
+                    deepseek.analyze_app_metadata(app_data),
+                    timeout=60
                 )
-                analysis_results["description_optimization"] = description_optimization
+            )))
+            
+            # Competitor analysis
+            if competitor_data:
+                tasks.append(("competitor_analysis", asyncio.create_task(
+                    asyncio.wait_for(
+                        deepseek.analyze_competitor_metadata(app_data, competitor_data),
+                        timeout=60
+                    )
+                )))
+            
+            # Keyword suggestions
+            if data.keywords:
+                tasks.append(("keyword_suggestions", asyncio.create_task(
+                    asyncio.wait_for(
+                        asyncio.gather(*[
+                            deepseek.generate_keyword_suggestions(keyword)
+                            for keyword in data.keywords
+                        ]),
+                        timeout=60
+                    )
+                )))
+            
+            # Market trends
+            tasks.append(("market_trends", asyncio.create_task(
+                asyncio.wait_for(
+                    deepseek.analyze_market_trends(),
+                    timeout=60
+                )
+            )))
+            
+            # Process results as they complete
+            for task_name, task in tasks:
+                try:
+                    result = await task
+                    analysis_results[task_name] = result
+                    
+                    # Update progress
+                    progress = 40 + (len(analysis_results) * 60 // len(tasks))
+                    await db.jobs.update_one(
+                        {"job_id": job_id},
+                        {
+                            "$set": {
+                                "progress": progress,
+                                "updated_at": datetime.utcnow()
+                            }
+                        }
+                    )
+                    
+                except TimeoutError:
+                    logger.error(f"Timeout in {task_name}")
+                    analysis_results[task_name] = {"error": "Analysis timed out"}
+                except Exception as e:
+                    logger.error(f"Error in {task_name}: {e}")
+                    analysis_results[task_name] = {"error": str(e)}
             
         except Exception as e:
             logger.error(f"Error in DeepSeek analysis: {e}")
             analysis_results["error"] = str(e)
         
-        # Update job with analysis results
+        # Cache final results
+        cache_key = f"analysis_{data.package_name}"
+        await cache_result(cache_key, {
+            "app_data": app_data,
+            "competitor_data": competitor_data,
+            "analysis": analysis_results
+        }, db)
+        
+        # Update job with final results
         await db.jobs.update_one(
             {"job_id": job_id},
             {
                 "$set": {
-                    "status": "completed",
-                    "analysis": analysis_results,
+                    "status": JobStatus.COMPLETED,
+                    "progress": 100,
+                    "data": {
+                        "app_data": app_data,
+                        "competitor_data": competitor_data,
+                        "analysis": analysis_results
+                    },
                     "updated_at": datetime.utcnow()
                 }
             }
@@ -420,7 +554,7 @@ async def process_analysis(job_id: str, data: AppMetadata):
             {"job_id": job_id},
             {
                 "$set": {
-                    "status": "error",
+                    "status": JobStatus.ERROR,
                     "error": str(e),
                     "updated_at": datetime.utcnow()
                 }

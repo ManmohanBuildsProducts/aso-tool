@@ -52,6 +52,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Initialize DeepSeek analyzer
+from external_integrations.deepseek_analyzer import DeepseekAnalyzer
+analyzer = DeepseekAnalyzer()
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,

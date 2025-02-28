@@ -58,11 +58,14 @@ const Dashboard = ({ appId }) => {
     );
   }
 
-  // Show error state
+  // Show error state with details
   if (appError || keywordError || competitorError) {
+    const error = appError || keywordError || competitorError;
+    const errorMessage = error?.response?.data?.detail || error?.message || 'An error occurred';
+    
     return (
       <ErrorState 
-        error={appError || keywordError || competitorError}
+        error={{ message: errorMessage }}
         showReset
       />
     );

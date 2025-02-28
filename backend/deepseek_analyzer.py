@@ -99,8 +99,10 @@ class DeepseekAnalyzer:
             logger.error(f"Error parsing markdown: {e}")
             return {"error": "Failed to parse response"}
 
-    async def analyze_competitor_metadata(self, app_metadata: Dict, competitor_metadata: List[Dict]) -> Dict:
+    async def analyze_competitor_metadata(self, app_metadata: Dict, competitor_metadata: List[Dict] = None) -> Dict:
         """Analyze competitor metadata and provide insights"""
+        if not competitor_metadata:
+            competitor_metadata = []
         try:
             prompt = f"""As an ASO expert for B2B and wholesale apps, analyze this competitive landscape and provide insights in this exact JSON format:
 {{

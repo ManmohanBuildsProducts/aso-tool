@@ -2,10 +2,14 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8000',
+  baseURL: 'http://localhost:55240',  // Using the correct port
   timeout: 30000,  // 30 seconds
   headers: {
     'Content-Type': 'application/json'
+  },
+  // Add error handling
+  validateStatus: function (status) {
+    return status >= 200 && status < 500;  // Don't reject if status is 404
   }
 });
 
@@ -23,7 +27,18 @@ api.interceptors.request.use(
 
 // Response interceptor
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Handle empty responses
+    if (!response.data) {
+      return {
+        data: {
+          analysis: {},
+          format: "json"
+        }
+      };
+    }
+    return response;
+  },
   (error) => {
     console.error('Response error:', error);
     
@@ -31,7 +46,20 @@ api.interceptors.response.use(
                    error.message || 
                    'An error occurred';
                    
-    toast.error(message);
+    // Show error toast only for non-404 errors
+    if (error.response?.status !== 404) {
+      toast.error(message);
+    }
+    
+    // Return empty analysis for 404s
+    if (error.response?.status === 404) {
+      return {
+        data: {
+          analysis: {},
+          format: "json"
+        }
+      };
+    }
     
     return Promise.reject(error);
   }

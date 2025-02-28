@@ -966,3 +966,88 @@ INFO:     127.0.0.1:39480 - "POST /api/analyze HTTP/1.1" 200 OK
 2025-02-28 14:59:35,941 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
 2025-02-28 14:59:35,941 - aso_tool.external_integrations.deepseek_analyzer - ERROR - Error parsing JSON response: Expecting value: line 1 column 1 (char 0)
 2025-02-28 14:59:42,679 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+INFO:     127.0.0.1:49214 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49214 - "OPTIONS /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49214 - "POST /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49214 - "POST /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49214 - "POST /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49214 - "POST /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49214 - "POST /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49214 - "POST /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49214 - "POST /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49214 - "POST /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49214 - "POST /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49214 - "POST /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49214 - "POST /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49214 - "POST /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49214 - "POST /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49214 - "POST /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49214 - "POST /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49214 - "POST /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49214 - "POST /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49214 - "POST /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49214 - "POST /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49214 - "POST /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49214 - "POST /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49214 - "POST /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49214 - "POST /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49214 - "POST /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49214 - "POST /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49214 - "POST /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49214 - "POST /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49214 - "POST /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49214 - "POST /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49214 - "POST /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49214 - "POST /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49214 - "POST /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49214 - "POST /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49214 - "POST /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49214 - "POST /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49214 - "POST /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49214 - "GET /analyze/66d10a83-1baa-4d35-9456-4cc98afcfce8 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49214 - "POST /analyze HTTP/1.1" 200 OK
+2025-02-28 15:02:39,810 - aso_tool.external_integrations.playstore_scraper - ERROR - Error fetching page: 404
+2025-02-28 15:02:39,833 - aso_tool.external_integrations.playstore_scraper - ERROR - Error fetching page: 404
+2025-02-28 15:02:39,843 - aso_tool.external_integrations.playstore_scraper - ERROR - Error fetching page: 404
+2025-02-28 15:02:39,847 - aso_tool.external_integrations.playstore_scraper - ERROR - Error fetching page: 404
+2025-02-28 15:02:39,850 - aso_tool.external_integrations.playstore_scraper - ERROR - Error fetching page: 404
+2025-02-28 15:02:39,852 - aso_tool.external_integrations.playstore_scraper - ERROR - Error fetching page: 404
+2025-02-28 15:02:39,852 - aso_tool.external_integrations.playstore_scraper - ERROR - Error fetching page: 404
+2025-02-28 15:02:39,852 - aso_tool.external_integrations.playstore_scraper - ERROR - Error fetching page: 404
+2025-02-28 15:02:39,852 - aso_tool.external_integrations.playstore_scraper - ERROR - Error fetching page: 404
+2025-02-28 15:02:39,855 - aso_tool.external_integrations.playstore_scraper - ERROR - Error fetching page: 404
+2025-02-28 15:02:39,855 - aso_tool.external_integrations.playstore_scraper - ERROR - Error fetching page: 404
+2025-02-28 15:02:39,856 - aso_tool.external_integrations.playstore_scraper - ERROR - Error fetching page: 404
+2025-02-28 15:02:39,856 - aso_tool.external_integrations.playstore_scraper - ERROR - Error fetching page: 404
+2025-02-28 15:02:39,857 - aso_tool.external_integrations.playstore_scraper - ERROR - Error fetching page: 404
+2025-02-28 15:02:39,857 - aso_tool.external_integrations.playstore_scraper - ERROR - Error fetching page: 404
+2025-02-28 15:02:39,858 - aso_tool.external_integrations.playstore_scraper - ERROR - Error fetching page: 404
+2025-02-28 15:02:39,859 - aso_tool.external_integrations.playstore_scraper - ERROR - Error fetching page: 404
+2025-02-28 15:02:39,860 - aso_tool.external_integrations.playstore_scraper - ERROR - Error fetching page: 404
+2025-02-28 15:02:39,861 - aso_tool.external_integrations.playstore_scraper - ERROR - Error fetching page: 404
+2025-02-28 15:02:39,862 - aso_tool.external_integrations.playstore_scraper - ERROR - Error fetching page: 404
+2025-02-28 15:02:39,864 - aso_tool.external_integrations.playstore_scraper - ERROR - Error fetching page: 404
+2025-02-28 15:02:39,864 - aso_tool.external_integrations.playstore_scraper - ERROR - Error fetching page: 404
+2025-02-28 15:02:39,864 - aso_tool.external_integrations.playstore_scraper - ERROR - Error fetching page: 404
+2025-02-28 15:02:39,866 - aso_tool.external_integrations.playstore_scraper - ERROR - Error fetching page: 404
+2025-02-28 15:02:39,866 - aso_tool.external_integrations.playstore_scraper - ERROR - Error fetching page: 404
+2025-02-28 15:02:39,866 - aso_tool.external_integrations.playstore_scraper - ERROR - Error fetching page: 404
+2025-02-28 15:02:39,867 - aso_tool.external_integrations.playstore_scraper - ERROR - Error fetching page: 404
+2025-02-28 15:02:39,869 - aso_tool.external_integrations.playstore_scraper - ERROR - Error fetching page: 404
+2025-02-28 15:02:39,870 - aso_tool.external_integrations.playstore_scraper - ERROR - Error fetching page: 404
+2025-02-28 15:02:39,870 - aso_tool.external_integrations.playstore_scraper - ERROR - Error fetching page: 404
+2025-02-28 15:02:39,870 - aso_tool.external_integrations.playstore_scraper - ERROR - Error fetching page: 404
+2025-02-28 15:02:39,876 - aso_tool.external_integrations.playstore_scraper - ERROR - Error fetching page: 404
+2025-02-28 15:02:39,878 - aso_tool.external_integrations.playstore_scraper - ERROR - Error fetching page: 404
+2025-02-28 15:02:39,882 - aso_tool.external_integrations.playstore_scraper - ERROR - Error fetching page: 404
+2025-02-28 15:02:39,886 - aso_tool.external_integrations.playstore_scraper - ERROR - Error fetching page: 404
+2025-02-28 15:02:39,897 - aso_tool.external_integrations.playstore_scraper - ERROR - Error fetching page: 404
+2025-02-28 15:02:40,885 - aso_tool.external_integrations.playstore_scraper - ERROR - Error fetching page: 404
+INFO:     127.0.0.1:44590 - "OPTIONS /api/analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44594 - "POST /api/analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44594 - "GET /api/analyze/24c2024b-7ccd-4f5f-a56b-06ab370a3cad HTTP/1.1" 200 OK
+2025-02-28 15:03:00,898 - aso_tool.external_integrations.playstore_scraper - ERROR - Error fetching page: 404
+INFO:     127.0.0.1:44594 - "GET /api/analyze/24c2024b-7ccd-4f5f-a56b-06ab370a3cad HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44594 - "GET /api/analyze/24c2024b-7ccd-4f5f-a56b-06ab370a3cad HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44594 - "GET /api/analyze/24c2024b-7ccd-4f5f-a56b-06ab370a3cad HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44594 - "GET /api/analyze/24c2024b-7ccd-4f5f-a56b-06ab370a3cad HTTP/1.1" 200 OK

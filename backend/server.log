@@ -318,3 +318,16 @@ INFO:     127.0.0.1:48002 - "GET /api/analyze/a93ef8e8-aa6d-4dac-8f70-b0520fc098
 2025-02-28 12:57:14,406 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
 2025-02-28 12:57:19,274 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
 2025-02-28 12:57:21,967 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+INFO:     127.0.0.1:45588 - "POST /api/analyze HTTP/1.1" 200 OK
+2025-02-28 12:58:54,197 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 12:58:54,197 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 12:58:54,197 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 12:58:54,197 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 12:58:54,197 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 12:58:54,198 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 12:58:54,198 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+INFO:     127.0.0.1:45594 - "GET /api/analyze/9e0511aa-b74d-45f9-979a-fd01ba19a84d HTTP/1.1" 200 OK
+2025-02-28 12:59:22,938 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 12:59:26,910 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+INFO:     127.0.0.1:59734 - "GET /api/ HTTP/1.1" 200 OK
+2025-02-28 12:59:32,525 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200

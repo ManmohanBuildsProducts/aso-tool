@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException, BackgroundTasks
+from fastapi import FastAPI, BackgroundTasks
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -10,9 +10,15 @@ from typing import Dict, List, Optional
 from pydantic import BaseModel
 from datetime import datetime
 import sys
-from pathlib import Path
-from uuid import uuid4
 import asyncio
+from uuid import uuid4
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 # Add backend directory to Python path
 sys.path.append(str(Path(__file__).parent.parent))
@@ -110,109 +116,118 @@ async def get_analysis_result(task_id: str):
         return {"error": str(e)}
 
 async def process_analysis(task_id: str, data: AppMetadata):
+    """Process app analysis task"""
     try:
+        logger.info(f"Starting analysis for task {task_id}")
+        
+        # Update task status
+        analysis_results[task_id]["status"] = "processing"
+        analysis_results[task_id]["progress"] = 0
+        
         # Get app metadata
+        logger.info(f"Fetching app metadata for {data.package_name}")
         app_data = await playstore.get_app_metadata(data.package_name)
         if "error" in app_data:
-            analysis_results[task_id] = {
+            logger.error(f"Error fetching app metadata: {app_data['error']}")
+            analysis_results[task_id].update({
                 "status": "error",
                 "error": app_data["error"]
-            }
+            })
             return
             
         analysis_results[task_id]["progress"] = 20
+        logger.info("App metadata fetched successfully")
         
         # Get competitor metadata if provided
         competitor_data = []
         if data.competitor_package_names:
+            logger.info("Fetching competitor metadata")
             for pkg_name in data.competitor_package_names:
-                comp_data = await playstore.get_app_metadata(pkg_name)
-                if "error" not in comp_data:
-                    competitor_data.append(comp_data)
+                try:
+                    comp_data = await playstore.get_app_metadata(pkg_name)
+                    if "error" not in comp_data:
+                        competitor_data.append(comp_data)
+                except Exception as e:
+                    logger.warning(f"Error fetching competitor data for {pkg_name}: {e}")
         
         analysis_results[task_id]["progress"] = 40
+        logger.info("Competitor metadata fetched successfully")
         
         # Process tasks concurrently
+        logger.info("Starting concurrent analysis tasks")
         tasks = []
+        task_results = {}
         
         # Analyze app metadata
-        tasks.append(deepseek.analyze_app_metadata(app_data))
+        tasks.append(("app_analysis", deepseek.analyze_app_metadata(app_data)))
         
         # Analyze competitor data if available
         if competitor_data:
-            tasks.append(deepseek.analyze_competitor_metadata(app_data, competitor_data))
-        else:
-            tasks.append(None)
+            tasks.append(("competitor_analysis", deepseek.analyze_competitor_metadata(app_data, competitor_data)))
         
         # Get keyword suggestions if provided
         if data.keywords:
-            tasks.append(asyncio.gather(*[
+            tasks.append(("keyword_suggestions", asyncio.gather(*[
                 deepseek.generate_keyword_suggestions(keyword)
                 for keyword in data.keywords
-            ]))
-        else:
-            tasks.append(None)
+            ])))
         
         # Get market trends
-        tasks.append(deepseek.analyze_market_trends())
+        tasks.append(("market_trends", deepseek.analyze_market_trends()))
         
         # Optimize description
-        if data.keywords:
-            tasks.append(deepseek.optimize_description(
+        if data.keywords and app_data.get("description"):
+            tasks.append(("description_optimization", deepseek.optimize_description(
                 app_data.get("description", ""),
                 data.keywords
-            ))
-        else:
-            tasks.append(None)
+            )))
         
-        # Wait for all tasks to complete
-        results = await asyncio.gather(*[task for task in tasks if task is not None])
-        
-        analysis_results[task_id]["progress"] = 80
-        
-        # Process results
-        result_index = 0
-        analysis = results[result_index]
-        result_index += 1
-        
-        competitor_analysis = None
-        if competitor_data:
-            competitor_analysis = results[result_index]
-            result_index += 1
-        
-        keyword_suggestions = None
-        if data.keywords:
-            keyword_suggestions = results[result_index]
-            result_index += 1
-        
-        market_trends = results[result_index]
-        result_index += 1
-        
-        description_optimization = None
-        if data.keywords:
-            description_optimization = results[result_index]
+        # Wait for all tasks to complete with timeout
+        logger.info("Waiting for analysis tasks to complete")
+        try:
+            for task_name, task in tasks:
+                try:
+                    result = await asyncio.wait_for(task, timeout=60)  # 60 seconds timeout
+                    task_results[task_name] = result
+                    analysis_results[task_id]["progress"] += int(40 / len(tasks))
+                    logger.info(f"Task {task_name} completed successfully")
+                except asyncio.TimeoutError:
+                    logger.error(f"Task {task_name} timed out")
+                    task_results[task_name] = {"error": "Task timed out"}
+                except Exception as e:
+                    logger.error(f"Error in task {task_name}: {e}")
+                    task_results[task_name] = {"error": str(e)}
+        except Exception as e:
+            logger.error(f"Error processing tasks: {e}")
+            analysis_results[task_id].update({
+                "status": "error",
+                "error": str(e)
+            })
+            return
         
         # Store final results
-        analysis_results[task_id] = {
+        logger.info("Storing final results")
+        analysis_results[task_id].update({
             "status": "completed",
             "progress": 100,
             "timestamp": datetime.utcnow(),
             "data": {
                 "app_metadata": app_data,
-                "analysis": analysis,
-                "competitor_analysis": competitor_analysis,
-                "keyword_suggestions": keyword_suggestions,
-                "market_trends": market_trends,
-                "description_optimization": description_optimization
+                "analysis": task_results.get("app_analysis"),
+                "competitor_analysis": task_results.get("competitor_analysis"),
+                "keyword_suggestions": task_results.get("keyword_suggestions"),
+                "market_trends": task_results.get("market_trends"),
+                "description_optimization": task_results.get("description_optimization")
             }
-        }
+        })
+        logger.info(f"Analysis completed for task {task_id}")
         
     except Exception as e:
         logger.error(f"Error in process_analysis: {e}")
-        analysis_results[task_id] = {
+        analysis_results[task_id].update({
             "status": "error",
             "error": str(e)
-        }
+        })
 
 @app.get("/search")
 async def search_keyword(keyword: str, limit: int = 10):

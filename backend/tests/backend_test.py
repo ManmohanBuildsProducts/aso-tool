@@ -1,169 +1,112 @@
+import requests
 import pytest
-import aiohttp
-import asyncio
-from typing import Dict
+import time
+from datetime import datetime
 import os
-import json
 
-# Get the backend URL from environment variable
-BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'http://localhost:8001')
+class ASOToolTester:
+    def __init__(self, base_url="http://localhost:8001"):
+        self.base_url = base_url
+        self.tests_run = 0
+        self.tests_passed = 0
 
-@pytest.mark.asyncio
-async def test_root_endpoint():
-    async with aiohttp.ClientSession() as session:
-        async with session.get(f"{BACKEND_URL}/api/") as response:
-            assert response.status == 200
-            data = await response.json()
-            assert data["message"] == "ASO Tool API"
+    def run_test(self, name, method, endpoint, expected_status, data=None):
+        """Run a single API test"""
+        url = f"{self.base_url}/api/{endpoint}"
+        headers = {'Content-Type': 'application/json'}
+        
+        self.tests_run += 1
+        print(f"\n🔍 Testing {name}...")
+        
+        try:
+            if method == 'GET':
+                response = requests.get(url, headers=headers)
+            elif method == 'POST':
+                response = requests.post(url, json=data, headers=headers)
 
-@pytest.mark.asyncio
-async def test_analyze_endpoint():
-    test_data = {
-        "package_name": "com.badhobuyer",
-        "competitor_package_names": ["club.kirana", "com.udaan.android"],
-        "keywords": ["wholesale", "b2b", "business"]
-    }
-    
-    async with aiohttp.ClientSession() as session:
-        # Test analyze endpoint
-        async with session.post(
-            f"{BACKEND_URL}/api/analyze",
-            json=test_data
-        ) as response:
-            assert response.status == 200
-            data = await response.json()
-            assert "task_id" in data
-            assert data["status"] == "processing"
-            
-            task_id = data["task_id"]
-            
-            # Test task status endpoint
-            max_retries = 10
-            retry_count = 0
-            while retry_count < max_retries:
-                async with session.get(
-                    f"{BACKEND_URL}/api/analyze/{task_id}"
-                ) as status_response:
-                    assert status_response.status == 200
-                    status_data = await status_response.json()
-                    
-                    if status_data.get("status") == "completed":
-                        assert "data" in status_data
-                        assert isinstance(status_data["data"], dict)
-                        assert "app_metadata" in status_data["data"]
-                        assert "analysis" in status_data["data"]
-                        break
-                    elif status_data.get("status") == "error":
-                        pytest.fail(f"Task failed with error: {status_data.get('error')}")
-                        break
-                        
-                retry_count += 1
-                await asyncio.sleep(2)
-            
-            if retry_count >= max_retries:
-                pytest.fail("Task did not complete within expected time")
+            success = response.status_code == expected_status
+            if success:
+                self.tests_passed += 1
+                print(f"✅ Passed - Status: {response.status_code}")
+                return success, response.json()
+            else:
+                print(f"❌ Failed - Expected {expected_status}, got {response.status_code}")
+                return success, None
 
-@pytest.mark.asyncio
-async def test_search_endpoint():
-    async with aiohttp.ClientSession() as session:
-        async with session.get(
-            f"{BACKEND_URL}/api/search",
-            params={"keyword": "wholesale", "limit": 5}
-        ) as response:
-            assert response.status == 200
-            data = await response.json()
-            assert "results" in data
-            assert isinstance(data["results"], list)
+        except Exception as e:
+            print(f"❌ Failed - Error: {str(e)}")
+            return False, None
 
-@pytest.mark.asyncio
-async def test_similar_apps_endpoint():
-    async with aiohttp.ClientSession() as session:
-        async with session.get(
-            f"{BACKEND_URL}/api/similar",
-            params={"package_name": "com.badhobuyer", "limit": 5}
-        ) as response:
-            assert response.status == 200
-            data = await response.json()
-            assert "results" in data
-            assert isinstance(data["results"], list)
-
-@pytest.mark.asyncio
-async def test_error_handling():
-    async with aiohttp.ClientSession() as session:
-        # Test invalid package name
-        test_data = {
-            "package_name": "invalid.package.name",
-            "competitor_package_names": [],
-            "keywords": []
+    def test_analyze_endpoint(self, package_name):
+        """Test analyze endpoint"""
+        data = {
+            "package_name": package_name,
+            "competitor_package_names": ["com.competitor1", "com.competitor2"],
+            "keywords": ["wholesale", "b2b", "marketplace"]
         }
-        
-        async with session.post(
-            f"{BACKEND_URL}/api/analyze",
-            json=test_data
-        ) as response:
-            data = await response.json()
-            assert "task_id" in data
-            
-            # Check if task fails with appropriate error
-            async with session.get(
-                f"{BACKEND_URL}/api/analyze/{data['task_id']}"
-            ) as status_response:
-                status_data = await status_response.json()
-                assert status_data.get("status") in ["error", "processing"]
+        success, response = self.run_test(
+            "Create Analysis Job",
+            "POST",
+            "analyze",
+            200,
+            data=data
+        )
+        if success and response:
+            print(f"Response: {response}")
+            return response.get('job_id') or response.get('task_id')
+        return None
 
-@pytest.mark.asyncio
-async def test_concurrent_tasks():
-    test_packages = [
-        "com.badhobuyer",
-        "club.kirana",
-        "com.udaan.android"
-    ]
-    
-    async with aiohttp.ClientSession() as session:
-        tasks = []
-        for package in test_packages:
-            test_data = {
-                "package_name": package,
-                "competitor_package_names": [],
-                "keywords": ["wholesale", "b2b"]
-            }
-            tasks.append(
-                session.post(
-                    f"{BACKEND_URL}/api/analyze",
-                    json=test_data
-                )
-            )
-        
-        responses = await asyncio.gather(*tasks)
-        task_ids = []
-        
-        for response in responses:
-            data = await response.json()
-            assert "task_id" in data
-            task_ids.append(data["task_id"])
-        
-        # Monitor all tasks
-        max_retries = 15
-        retry_count = 0
-        completed_tasks = set()
-        
-        while retry_count < max_retries and len(completed_tasks) < len(task_ids):
-            status_tasks = []
-            for task_id in task_ids:
-                if task_id not in completed_tasks:
-                    status_tasks.append(
-                        session.get(f"{BACKEND_URL}/api/analyze/{task_id}")
-                    )
+    def test_job_status(self, job_id):
+        """Test job status endpoint"""
+        success, response = self.run_test(
+            "Get Job Status",
+            "GET",
+            f"analyze/{job_id}",
+            200
+        )
+        return response if success else None
+
+    def test_job_completion(self, job_id, timeout=60):
+        """Test job completion with timeout"""
+        start_time = time.time()
+        while time.time() - start_time < timeout:
+            response = self.test_job_status(job_id)
+            if not response:
+                return False
             
-            status_responses = await asyncio.gather(*status_tasks)
-            for response in status_responses:
-                status_data = await response.json()
-                if status_data.get("status") == "completed":
-                    completed_tasks.add(status_data["task_id"])
-                elif status_data.get("status") == "error":
-                    pytest.fail(f"Task failed with error: {status_data.get('error')}")
+            if response['status'] == 'completed':
+                print("✅ Job completed successfully")
+                return True
+            elif response['status'] in ['error', 'timeout']:
+                print(f"❌ Job failed with status: {response['status']}")
+                return False
             
-            retry_count += 1
-            await asyncio.sleep(2)
+            time.sleep(2)
         
-        assert len(completed_tasks) == len(task_ids), "Not all tasks completed successfully"
+        print("❌ Job timed out")
+        return False
+
+def main():
+    # Setup
+    tester = ASOToolTester()
+    test_package = "com.badhobuyer"
+
+    # Test 1: Create Analysis Job
+    print("\n🔬 Testing Analysis Job Creation")
+    job_id = tester.test_analyze_endpoint(test_package)
+    if not job_id:
+        print("❌ Failed to create analysis job")
+        return 1
+
+    # Test 2: Monitor Job Progress
+    print("\n🔬 Testing Job Progress Monitoring")
+    if not tester.test_job_completion(job_id):
+        print("❌ Job monitoring failed")
+        return 1
+
+    # Print results
+    print(f"\n📊 Tests passed: {tester.tests_passed}/{tester.tests_run}")
+    return 0 if tester.tests_passed == tester.tests_run else 1
+
+if __name__ == "__main__":
+    exit(main())

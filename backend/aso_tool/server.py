@@ -139,7 +139,7 @@ class JobStatus(str, Enum):
 
 class JobResponse(BaseModel):
     """Job response model"""
-    job_id: str
+    task_id: str  # Using task_id for frontend compatibility
     status: JobStatus
     progress: Optional[int] = 0
     data: Optional[Dict] = None
@@ -147,11 +147,33 @@ class JobResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "task_id": "123e4567-e89b-12d3-a456-426614174000",
+                "status": "processing",
+                "progress": 0,
+                "data": None,
+                "error": None,
+                "created_at": "2025-02-28T12:00:00Z",
+                "updated_at": "2025-02-28T12:00:00Z"
+            }
+        }
+
 class AnalysisRequest(BaseModel):
     """Analysis request model"""
     package_name: str
     competitor_package_names: Optional[List[str]] = Field(default_factory=list)
     keywords: Optional[List[str]] = Field(default_factory=list)
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "package_name": "com.example.app",
+                "competitor_package_names": ["com.competitor1", "com.competitor2"],
+                "keywords": ["wholesale", "b2b", "marketplace"]
+            }
+        }
 
 # Configure logging
 logging.basicConfig(
@@ -246,13 +268,14 @@ analysis_results = {}
 async def analyze_app(data: AnalysisRequest, background_tasks: BackgroundTasks) -> JobResponse:
     """Start app analysis job"""
     try:
-        # Generate job ID and timestamps
-        job_id = str(uuid4())
+        # Generate task ID and timestamps
+        task_id = str(uuid4())
         now = datetime.utcnow()
         
         # Create job document
         job = {
-            "job_id": job_id,
+            "job_id": task_id,  # Store as job_id in MongoDB
+            "task_id": task_id,  # Add task_id for response
             "status": JobStatus.PENDING,
             "progress": 0,
             "created_at": now,
@@ -277,15 +300,15 @@ async def analyze_app(data: AnalysisRequest, background_tasks: BackgroundTasks) 
         else:
             logger.info(f"Starting new analysis for {data.package_name}")
             job["status"] = JobStatus.PROCESSING
-            background_tasks.add_task(process_analysis, job_id, data)
+            background_tasks.add_task(process_analysis, task_id, data)
         
         # Store in MongoDB
         await db.jobs.insert_one(job)
-        logger.info(f"Created job {job_id} for {data.package_name}")
+        logger.info(f"Created job {task_id} for {data.package_name}")
         
         # Convert to response model
         response = JobResponse(
-            job_id=job_id,
+            task_id=task_id,  # Use task_id in response
             status=job["status"],
             progress=job["progress"],
             data=job.get("data"),
@@ -303,17 +326,23 @@ async def analyze_app(data: AnalysisRequest, background_tasks: BackgroundTasks) 
             detail=str(e)
         )
 
-@app.get("/analyze/{job_id}", response_model=JobResponse)
+@app.get("/analyze/{task_id}", response_model=JobResponse)
 @rate_limit()
-async def get_analysis_result(job_id: str) -> JobResponse:
+async def get_analysis_result(task_id: str) -> JobResponse:
     """Get analysis job status and results"""
     try:
-        # Get job from MongoDB
-        job = await db.jobs.find_one({"job_id": job_id})
+        # Get job from MongoDB using task_id
+        job = await db.jobs.find_one({
+            "$or": [
+                {"task_id": task_id},  # Try new task_id field
+                {"job_id": task_id}    # Fallback to old job_id field
+            ]
+        })
+        
         if not job:
             raise HTTPException(
                 status_code=404,
-                detail="Job not found"
+                detail="Task not found"
             )
             
         # Convert ObjectId to string for JSON serialization
@@ -324,10 +353,10 @@ async def get_analysis_result(job_id: str) -> JobResponse:
         if job["status"] == JobStatus.COMPLETED:
             age = datetime.utcnow() - job["updated_at"]
             if age > timedelta(seconds=CACHE_DURATION):
-                await db.jobs.delete_one({"job_id": job_id})
+                await db.jobs.delete_one({"job_id": job["job_id"]})
                 raise HTTPException(
                     status_code=404,
-                    detail="Job results expired"
+                    detail="Task results expired"
                 )
         
         # Check for timeout
@@ -335,24 +364,24 @@ async def get_analysis_result(job_id: str) -> JobResponse:
             if datetime.utcnow() > job["timeout_at"]:
                 # Update job status to timeout
                 await db.jobs.update_one(
-                    {"job_id": job_id},
+                    {"job_id": job["job_id"]},
                     {
                         "$set": {
                             "status": JobStatus.TIMEOUT,
-                            "error": "Job timed out",
+                            "error": "Task timed out",
                             "updated_at": datetime.utcnow()
                         }
                     }
                 )
                 job.update({
                     "status": JobStatus.TIMEOUT,
-                    "error": "Job timed out",
+                    "error": "Task timed out",
                     "updated_at": datetime.utcnow()
                 })
         
         # Convert to response model
         response = JobResponse(
-            job_id=job["job_id"],
+            task_id=job.get("task_id", job["job_id"]),  # Use task_id if available, fallback to job_id
             status=JobStatus(job["status"]),
             progress=job.get("progress", 0),
             data=job.get("data"),
@@ -366,7 +395,7 @@ async def get_analysis_result(job_id: str) -> JobResponse:
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error getting job status: {e}")
+        logger.error(f"Error getting task status: {e}")
         raise HTTPException(
             status_code=500,
             detail=str(e)

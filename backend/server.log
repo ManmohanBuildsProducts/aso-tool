@@ -1,18 +1,7 @@
-INFO:     Started server process [15535]
+INFO:     Started server process [16978]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
-INFO:     127.0.0.1:56984 - "GET /api HTTP/1.1" 307 Temporary Redirect
-INFO:     127.0.0.1:52518 - "GET /api/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56562 - "POST /api/analyze HTTP/1.1" 200 OK
-2025-02-28 12:43:24,970 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
-2025-02-28 12:43:24,971 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
-2025-02-28 12:43:24,972 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
-2025-02-28 12:43:24,972 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
-2025-02-28 12:43:24,972 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
-2025-02-28 12:43:24,972 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
-2025-02-28 12:43:24,972 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
-INFO:     127.0.0.1:56572 - "GET /api/analyze/b9827fb5-7298-4d2f-997a-98579a6e028b HTTP/1.1" 200 OK
-2025-02-28 12:43:50,085 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
-2025-02-28 12:43:54,408 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
-2025-02-28 12:43:56,185 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+INFO:     127.0.0.1:57536 - "GET /api HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:55342 - "GET /api/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42988 - "GET /api/ HTTP/1.1" 200 OK

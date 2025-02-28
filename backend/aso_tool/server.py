@@ -44,6 +44,26 @@ mongo_url = os.environ.get('MONGO_URL', "")
 client = AsyncIOMotorClient(mongo_url)
 db = client.aso_tool
 
+# Create indexes
+async def setup_db():
+    """Setup MongoDB indexes"""
+    try:
+        # Jobs collection
+        await db.jobs.create_index("job_id", unique=True)
+        await db.jobs.create_index("updated_at")
+        await db.jobs.create_index("status")
+        
+        # App cache collection
+        await db.app_cache.create_index("package_name", unique=True)
+        await db.app_cache.create_index("updated_at")
+        
+        logger.info("MongoDB indexes created successfully")
+    except Exception as e:
+        logger.error(f"Error creating MongoDB indexes: {e}")
+
+# Setup database
+asyncio.create_task(setup_db())
+
 # FastAPI app setup
 app = FastAPI(root_path="/api")
 

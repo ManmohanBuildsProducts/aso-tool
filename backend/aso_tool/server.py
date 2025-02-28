@@ -1,4 +1,4 @@
-from fastapi import FastAPI, BackgroundTasks, HTTPException
+from fastapi import FastAPI, BackgroundTasks, HTTPException, APIRouter
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -228,7 +228,17 @@ ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
 # FastAPI app setup
-app = FastAPI(root_path="/api")
+app = FastAPI(
+    title="ASO Tool API",
+    description="API for analyzing app store optimization",
+    version="1.0.0",
+    docs_url="/api/docs",
+    redoc_url="/api/redoc",
+    openapi_url="/api/openapi.json"
+)
+
+# Create API router
+api_router = APIRouter(prefix="/api")
 
 # MongoDB connection
 mongo_url = os.environ.get('MONGO_URL', "")
@@ -334,7 +344,7 @@ async def root():
 # Store analysis results
 analysis_results = {}
 
-@app.post("/analyze", response_model=JobResponse)
+@api_router.post("/analyze", response_model=JobResponse)
 @rate_limit()
 async def analyze_app(data: AnalysisRequest, background_tasks: BackgroundTasks) -> JobResponse:
     """Start app analysis job"""
@@ -397,7 +407,7 @@ async def analyze_app(data: AnalysisRequest, background_tasks: BackgroundTasks) 
             detail=str(e)
         )
 
-@app.get("/analyze/{task_id}", response_model=JobResponse)
+@api_router.get("/analyze/{task_id}", response_model=JobResponse)
 @rate_limit()
 async def get_analysis_result(task_id: str) -> JobResponse:
     """Get analysis job status and results"""

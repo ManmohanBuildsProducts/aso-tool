@@ -29,6 +29,7 @@ python-multipart = "^0.0.9"
 aiohttp = "^3.9.3"
 beautifulsoup4 = "^4.12.3"
 pytest-asyncio = "^0.25.3"
+openai = "1.61.1"
 
 [build-system]
 requires = ["poetry-core"]

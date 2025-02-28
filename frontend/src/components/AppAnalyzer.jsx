@@ -8,7 +8,10 @@ const AppAnalyzer = () => {
     keywords: ['wholesale', 'b2b', 'business']
   });
 
-  const { data, isLoading, error, refetch } = useQuery(
+  const [taskId, setTaskId] = useState(null);
+  const [progress, setProgress] = useState(0);
+
+  const { data: taskData, isLoading: isTaskLoading, error: taskError } = useQuery(
     ['analyze', appData],
     async () => {
       const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/analyze`, {
@@ -21,17 +24,48 @@ const AppAnalyzer = () => {
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
-      return response.json();
+      const result = await response.json();
+      if (result.error) {
+        throw new Error(result.error);
+      }
+      setTaskId(result.task_id);
+      return result;
     },
     {
-      enabled: false
+      enabled: false,
+      retry: 3,
+      retryDelay: 1000
     }
   );
 
-  const handleSubmit = (e) => {
+  const { data, isLoading, error, refetch } = useQuery(
+    ['result', taskId],
+    async () => {
+      if (!taskId) return null;
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/analyze/${taskId}`);
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const result = await response.json();
+      if (result.error) {
+        throw new Error(result.error);
+      }
+      setProgress(result.progress || 0);
+      return result.data;
+    },
+    {
+      enabled: !!taskId,
+      refetchInterval: (data) => !data || data.status === 'processing' ? 1000 : false,
+      retry: 3,
+      retryDelay: 1000
+    }
+  );
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Trigger the query
-    refetch();
+    setTaskId(null);
+    setProgress(0);
+    await refetch();
   };
 
   const handleInputChange = (e) => {
@@ -102,9 +136,34 @@ const AppAnalyzer = () => {
         </button>
       </form>
 
-      {error && (
+      {(error || taskError) && (
         <div className="mt-4 p-4 bg-red-100 text-red-700 rounded-md">
-          Error: {error.message}
+          Error: {(error || taskError).message}
+        </div>
+      )}
+
+      {(isLoading || isTaskLoading) && progress < 100 && (
+        <div className="mt-4">
+          <div className="relative pt-1">
+            <div className="flex mb-2 items-center justify-between">
+              <div>
+                <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-indigo-600 bg-indigo-200">
+                  Progress
+                </span>
+              </div>
+              <div className="text-right">
+                <span className="text-xs font-semibold inline-block text-indigo-600">
+                  {progress}%
+                </span>
+              </div>
+            </div>
+            <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-indigo-200">
+              <div
+                style={{ width: `${progress}%` }}
+                className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-indigo-500 transition-all duration-500"
+              />
+            </div>
+          </div>
         </div>
       )}
 

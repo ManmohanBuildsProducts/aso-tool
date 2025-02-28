@@ -784,3 +784,21 @@ INFO:     127.0.0.1:41938 - "GET /api/analyze/2a31d3fc-e937-4622-8c9d-d29b67a231
 2025-02-28 14:36:18,053 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
 2025-02-28 14:36:29,062 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
 2025-02-28 14:36:53,243 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+INFO:     127.0.0.1:40238 - "OPTIONS /api/analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40240 - "POST /api/analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40240 - "GET /api/analyze/793cee39-ea65-4345-9263-3ef16c828553 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40240 - "GET /api/analyze/793cee39-ea65-4345-9263-3ef16c828553 HTTP/1.1" 200 OK
+2025-02-28 14:42:36,644 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 14:42:36,645 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 14:42:36,645 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 14:42:36,645 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 14:42:36,645 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 14:42:36,645 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 14:42:36,645 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+INFO:     127.0.0.1:40240 - "GET /api/analyze/793cee39-ea65-4345-9263-3ef16c828553 HTTP/1.1" 200 OK
+2025-02-28 14:43:01,751 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 14:43:02,797 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 14:43:15,384 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 14:43:16,432 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 14:43:16,966 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 14:43:25,344 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200

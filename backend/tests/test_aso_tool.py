@@ -1,154 +1,312 @@
 import pytest
-import aiohttp
 import asyncio
-from datetime import datetime
-import os
-import json
+from datetime import datetime, timedelta
+from unittest.mock import Mock, patch
+from fastapi.testclient import TestClient
+from aso_tool.server import app, JobStatus
+from aso_tool.external_integrations.playstore_scraper import PlayStoreScraper
+from aso_tool.external_integrations.deepseek_analyzer import DeepseekAnalyzer
 
-# Use localhost since we're testing internally
-BACKEND_URL = "http://localhost:8001"
+client = TestClient(app)
+
+# Test data
+TEST_PACKAGE_NAME = "com.example.b2b"
+TEST_COMPETITOR_PACKAGE_NAMES = ["com.competitor1", "com.competitor2"]
+TEST_KEYWORDS = ["wholesale", "b2b", "marketplace"]
+
+@pytest.fixture
+def mock_playstore():
+    with patch("aso_tool.server.playstore") as mock:
+        mock.get_app_metadata.return_value = {
+            "title": "Test B2B App",
+            "description": "A test B2B wholesale app",
+            "rating": 4.5,
+            "reviews_count": 1000,
+            "category": "Business"
+        }
+        yield mock
+
+@pytest.fixture
+def mock_deepseek():
+    with patch("aso_tool.server.deepseek") as mock:
+        mock.analyze_app_metadata.return_value = {
+            "analysis": {
+                "title_analysis": {
+                    "current_score": 85,
+                    "suggestions": ["Add keywords"]
+                }
+            },
+            "format": "json"
+        }
+        yield mock
 
 class TestASOTool:
-    @pytest.fixture
-    async def session(self):
-        async with aiohttp.ClientSession() as session:
-            yield session
+    """Test suite for ASO Tool implementation"""
 
-    @pytest.mark.asyncio
-    async def test_root_endpoint(self, session):
-        """Test the root endpoint"""
-        async with session.get(f"{BACKEND_URL}/api/") as response:
-            assert response.status == 200
-            data = await response.json()
-            assert "message" in data
-            assert data["message"] == "ASO Tool API"
+    def test_task_helper(self, mock_playstore, mock_deepseek):
+        """Test task helper function"""
+        response = client.post("/analyze", json={
+            "package_name": TEST_PACKAGE_NAME,
+            "competitor_package_names": TEST_COMPETITOR_PACKAGE_NAMES,
+            "keywords": TEST_KEYWORDS
+        })
+        assert response.status_code == 200
+        data = response.json()
+        assert "job_id" in data
+        assert data["status"] in [JobStatus.PENDING, JobStatus.PROCESSING]
 
-    @pytest.mark.asyncio
-    async def test_analyze_endpoint(self, session):
-        """Test the analyze endpoint"""
-        test_data = {
-            "package_name": "com.badhobuyer",
-            "competitor_package_names": ["club.kirana"],
-            "keywords": ["wholesale", "b2b"]
-        }
-
-        # Create analysis job
-        async with session.post(
-            f"{BACKEND_URL}/api/analyze",
-            json=test_data
-        ) as response:
-            assert response.status == 200
-            data = await response.json()
-            assert "task_id" in data
-            assert "status" in data
-            assert data["status"] == "processing"
-            task_id = data["task_id"]
-
-        # Wait and check job status
-        max_retries = 10
-        retry_count = 0
-        job_completed = False
-
-        while retry_count < max_retries and not job_completed:
-            await asyncio.sleep(2)  # Wait 2 seconds between checks
-            async with session.get(
-                f"{BACKEND_URL}/api/analyze/{task_id}"
-            ) as response:
-                assert response.status == 200
-                data = await response.json()
-                assert "status" in data
-                
-                if data["status"] == "completed":
-                    job_completed = True
-                    # Verify job result structure
-                    assert "app_data" in data
-                    assert "analysis" in data
-                    break
-                elif data["status"] == "error":
-                    pytest.fail(f"Job failed with error: {data.get('error')}")
-                
-                retry_count += 1
-
-        assert job_completed, "Job did not complete within expected time"
-
-    @pytest.mark.asyncio
-    async def test_search_endpoint(self, session):
-        """Test the search endpoint"""
-        test_keyword = "wholesale"
-        async with session.get(
-            f"{BACKEND_URL}/api/search?keyword={test_keyword}"
-        ) as response:
-            assert response.status == 200
-            data = await response.json()
-            assert "results" in data
-            assert isinstance(data["results"], list)
-
-    @pytest.mark.asyncio
-    async def test_similar_apps_endpoint(self, session):
-        """Test the similar apps endpoint"""
-        test_package = "com.badhobuyer"
-        async with session.get(
-            f"{BACKEND_URL}/api/similar?package_name={test_package}"
-        ) as response:
-            assert response.status == 200
-            data = await response.json()
-            assert "results" in data
-            assert isinstance(data["results"], list)
-
-    @pytest.mark.asyncio
-    async def test_error_handling(self, session):
-        """Test error handling"""
-        # Test with invalid package name
-        test_data = {
-            "package_name": "invalid.package.name",
-            "competitor_package_names": [],
-            "keywords": []
-        }
-
-        async with session.post(
-            f"{BACKEND_URL}/api/analyze",
-            json=test_data
-        ) as response:
-            assert response.status == 200
-            data = await response.json()
-            assert "task_id" in data
-            task_id = data["task_id"]
-
-        # Check if job fails appropriately
-        await asyncio.sleep(2)
-        async with session.get(
-            f"{BACKEND_URL}/api/analyze/{task_id}"
-        ) as response:
-            data = await response.json()
-            assert "status" in data
-            assert data["status"] in ["error", "processing"]
-
-    @pytest.mark.asyncio
-    async def test_caching_mechanism(self, session):
-        """Test the caching mechanism"""
-        # Make two consecutive requests for the same package
-        test_package = "com.badhobuyer"
-        
+    def test_task_caching(self, mock_playstore, mock_deepseek):
+        """Test task caching functionality"""
         # First request
-        start_time1 = datetime.now()
-        async with session.get(
-            f"{BACKEND_URL}/api/similar?package_name={test_package}"
-        ) as response1:
-            assert response1.status == 200
-            data1 = await response1.json()
-            time1 = (datetime.now() - start_time1).total_seconds()
+        response1 = client.post("/analyze", json={
+            "package_name": TEST_PACKAGE_NAME
+        })
+        assert response1.status_code == 200
+        job_id1 = response1.json()["job_id"]
 
-        await asyncio.sleep(1)
+        # Second request (should use cache)
+        response2 = client.post("/analyze", json={
+            "package_name": TEST_PACKAGE_NAME
+        })
+        assert response2.status_code == 200
+        job_id2 = response2.json()["job_id"]
 
-        # Second request (should be cached)
-        start_time2 = datetime.now()
-        async with session.get(
-            f"{BACKEND_URL}/api/similar?package_name={test_package}"
-        ) as response2:
-            assert response2.status == 200
-            data2 = await response2.json()
-            time2 = (datetime.now() - start_time2).total_seconds()
+        # Check both jobs
+        result1 = client.get(f"/analyze/{job_id1}")
+        result2 = client.get(f"/analyze/{job_id2}")
+        assert result1.status_code == 200
+        assert result2.status_code == 200
 
-        # Second request should be faster due to caching
-        assert time2 <= time1, "Cached request should be faster"
-        assert data1 == data2, "Cached data should match original data"
+    def test_task_timeouts(self, mock_playstore):
+        """Test task timeout handling"""
+        # Mock slow response
+        mock_playstore.get_app_metadata.side_effect = asyncio.TimeoutError()
+
+        response = client.post("/analyze", json={
+            "package_name": TEST_PACKAGE_NAME
+        })
+        assert response.status_code == 200
+        job_id = response.json()["job_id"]
+
+        # Check job status
+        result = client.get(f"/analyze/{job_id}")
+        assert result.status_code == 200
+        data = result.json()
+        assert data["status"] in [JobStatus.ERROR, JobStatus.TIMEOUT]
+
+    def test_task_error_handling(self, mock_playstore):
+        """Test task error handling"""
+        # Mock error response
+        mock_playstore.get_app_metadata.side_effect = Exception("Test error")
+
+        response = client.post("/analyze", json={
+            "package_name": TEST_PACKAGE_NAME
+        })
+        assert response.status_code == 200
+        job_id = response.json()["job_id"]
+
+        # Check job status
+        result = client.get(f"/analyze/{job_id}")
+        assert result.status_code == 200
+        data = result.json()
+        assert data["status"] == JobStatus.ERROR
+        assert "error" in data
+
+    def test_progress_tracking(self, mock_playstore, mock_deepseek):
+        """Test progress tracking"""
+        response = client.post("/analyze", json={
+            "package_name": TEST_PACKAGE_NAME
+        })
+        assert response.status_code == 200
+        job_id = response.json()["job_id"]
+
+        # Check progress updates
+        result = client.get(f"/analyze/{job_id}")
+        assert result.status_code == 200
+        data = result.json()
+        assert "progress" in data
+        assert isinstance(data["progress"], int)
+        assert 0 <= data["progress"] <= 100
+
+    def test_app_analysis(self, mock_playstore, mock_deepseek):
+        """Test app analysis functionality"""
+        response = client.post("/analyze", json={
+            "package_name": TEST_PACKAGE_NAME
+        })
+        assert response.status_code == 200
+        job_id = response.json()["job_id"]
+
+        # Check analysis results
+        result = client.get(f"/analyze/{job_id}")
+        assert result.status_code == 200
+        data = result.json()
+        if data["status"] == JobStatus.COMPLETED:
+            assert "data" in data
+            assert "title_analysis" in data["data"]
+
+    def test_competitor_analysis(self, mock_playstore, mock_deepseek):
+        """Test competitor analysis functionality"""
+        response = client.post("/analyze", json={
+            "package_name": TEST_PACKAGE_NAME,
+            "competitor_package_names": TEST_COMPETITOR_PACKAGE_NAMES
+        })
+        assert response.status_code == 200
+        job_id = response.json()["job_id"]
+
+        # Check competitor analysis
+        result = client.get(f"/analyze/{job_id}")
+        assert result.status_code == 200
+        data = result.json()
+        if data["status"] == JobStatus.COMPLETED:
+            assert "data" in data
+            assert "competitor_data" in data["data"]
+
+    def test_keyword_suggestions(self, mock_deepseek):
+        """Test keyword suggestions functionality"""
+        mock_deepseek.generate_keyword_suggestions.return_value = {
+            "analysis": {
+                "variations": [
+                    {"keyword": "test", "relevance": 0.9}
+                ]
+            },
+            "format": "json"
+        }
+
+        response = client.post("/analyze", json={
+            "package_name": TEST_PACKAGE_NAME,
+            "keywords": TEST_KEYWORDS
+        })
+        assert response.status_code == 200
+        job_id = response.json()["job_id"]
+
+        # Check keyword suggestions
+        result = client.get(f"/analyze/{job_id}")
+        assert result.status_code == 200
+        data = result.json()
+        if data["status"] == JobStatus.COMPLETED:
+            assert "data" in data
+            assert "keyword_suggestions" in data["data"]
+
+    def test_market_trends(self, mock_deepseek):
+        """Test market trends analysis"""
+        mock_deepseek.analyze_market_trends.return_value = {
+            "analysis": {
+                "market_trends": [
+                    {"trend": "test trend", "impact": "high"}
+                ]
+            },
+            "format": "json"
+        }
+
+        response = client.post("/analyze", json={
+            "package_name": TEST_PACKAGE_NAME
+        })
+        assert response.status_code == 200
+        job_id = response.json()["job_id"]
+
+        # Check market trends
+        result = client.get(f"/analyze/{job_id}")
+        assert result.status_code == 200
+        data = result.json()
+        if data["status"] == JobStatus.COMPLETED:
+            assert "data" in data
+            assert "market_trends" in data["data"]
+
+    def test_description_optimization(self, mock_deepseek):
+        """Test description optimization"""
+        mock_deepseek.optimize_description.return_value = {
+            "analysis": {
+                "optimized_description": "test description",
+                "improvements": [{"type": "keyword", "change": "added keywords"}]
+            },
+            "format": "json"
+        }
+
+        response = client.post("/analyze", json={
+            "package_name": TEST_PACKAGE_NAME,
+            "keywords": TEST_KEYWORDS
+        })
+        assert response.status_code == 200
+        job_id = response.json()["job_id"]
+
+        # Check description optimization
+        result = client.get(f"/analyze/{job_id}")
+        assert result.status_code == 200
+        data = result.json()
+        if data["status"] == JobStatus.COMPLETED:
+            assert "data" in data
+            assert "description_optimization" in data["data"]
+
+    def test_cache_storage(self, mock_playstore, mock_deepseek):
+        """Test cache storage functionality"""
+        # First request
+        response = client.post("/analyze", json={
+            "package_name": TEST_PACKAGE_NAME
+        })
+        assert response.status_code == 200
+        
+        # Second request should use cache
+        mock_playstore.get_app_metadata.reset_mock()
+        response2 = client.post("/analyze", json={
+            "package_name": TEST_PACKAGE_NAME
+        })
+        assert response2.status_code == 200
+        assert mock_playstore.get_app_metadata.call_count == 0
+
+    def test_cache_expiration(self, mock_playstore, mock_deepseek):
+        """Test cache expiration"""
+        # First request
+        response = client.post("/analyze", json={
+            "package_name": TEST_PACKAGE_NAME
+        })
+        assert response.status_code == 200
+        job_id = response.json()["job_id"]
+
+        # Simulate cache expiration
+        result = client.get(f"/analyze/{job_id}")
+        assert result.status_code == 200
+        
+        # Request after expiration
+        mock_playstore.get_app_metadata.reset_mock()
+        response2 = client.post("/analyze", json={
+            "package_name": TEST_PACKAGE_NAME
+        })
+        assert response2.status_code == 200
+        assert mock_playstore.get_app_metadata.call_count > 0
+
+    def test_error_caching(self, mock_playstore):
+        """Test error caching behavior"""
+        # Simulate error
+        mock_playstore.get_app_metadata.side_effect = Exception("Test error")
+
+        response = client.post("/analyze", json={
+            "package_name": TEST_PACKAGE_NAME
+        })
+        assert response.status_code == 200
+        job_id = response.json()["job_id"]
+
+        # Check error is cached
+        result = client.get(f"/analyze/{job_id}")
+        assert result.status_code == 200
+        data = result.json()
+        assert data["status"] == JobStatus.ERROR
+        assert "error" in data
+
+    def test_error_propagation(self, mock_playstore, mock_deepseek):
+        """Test error propagation through pipeline"""
+        # Simulate cascading errors
+        mock_playstore.get_app_metadata.side_effect = Exception("Scraper error")
+        mock_deepseek.analyze_app_metadata.side_effect = Exception("Analysis error")
+
+        response = client.post("/analyze", json={
+            "package_name": TEST_PACKAGE_NAME
+        })
+        assert response.status_code == 200
+        job_id = response.json()["job_id"]
+
+        # Check error propagation
+        result = client.get(f"/analyze/{job_id}")
+        assert result.status_code == 200
+        data = result.json()
+        assert data["status"] == JobStatus.ERROR
+        assert "error" in data

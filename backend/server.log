@@ -19,3 +19,9 @@ INFO:     127.0.0.1:60012 - "GET /api HTTP/1.1" 404 Not Found
 2025-02-28 12:15:39,281 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
 2025-02-28 12:15:57,624 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
 2025-02-28 12:15:57,625 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 12:16:04,642 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 12:16:04,643 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 12:16:32,447 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 12:16:32,448 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
+2025-02-28 12:16:42,842 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+INFO:     127.0.0.1:51208 - "POST /api/analyze HTTP/1.1" 200 OK

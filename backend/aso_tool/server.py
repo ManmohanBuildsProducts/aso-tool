@@ -37,7 +37,7 @@ client = AsyncIOMotorClient(mongo_url)
 db = client.aso_tool
 
 # FastAPI app setup
-app = FastAPI()
+app = FastAPI(root_path="/api")
 
 app.add_middleware(
     CORSMiddleware,
@@ -48,7 +48,7 @@ app.add_middleware(
 )
 
 # Create API router
-api_router = APIRouter(prefix="/api")
+api_router = APIRouter()
 app.include_router(api_router)
 
 # Initialize analyzers

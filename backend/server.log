@@ -13,3 +13,6 @@ INFO:     127.0.0.1:56562 - "POST /api/analyze HTTP/1.1" 200 OK
 2025-02-28 12:43:24,972 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
 2025-02-28 12:43:24,972 - aso_tool.external_integrations.deepseek_analyzer - INFO - Making request to Deepseek API
 INFO:     127.0.0.1:56572 - "GET /api/analyze/b9827fb5-7298-4d2f-997a-98579a6e028b HTTP/1.1" 200 OK
+2025-02-28 12:43:50,085 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 12:43:54,408 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200
+2025-02-28 12:43:56,185 - aso_tool.external_integrations.deepseek_analyzer - INFO - Deepseek API status code: 200

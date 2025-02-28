@@ -2,8 +2,8 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 
 const api = axios.create({
-  baseURL: 'http://localhost:55240',  // Using the correct port
-  timeout: 30000,  // 30 seconds
+  baseURL: process.env.REACT_APP_BACKEND_URL || '/api',  // Use environment variable or default to /api
+  timeout: 60000,  // 60 seconds for AI operations
   headers: {
     'Content-Type': 'application/json'
   },
@@ -65,9 +65,9 @@ api.interceptors.response.use(
   }
 );
 
-export const fetchAppAnalysis = async (appId) => {
+export const fetchAppAnalysis = async (appId, metadata) => {
   try {
-    const response = await api.get(`/ai/analyze/${appId}`);
+    const response = await api.post(`/analyze/app/${appId}`, metadata);
     return response.data;
   } catch (error) {
     console.error('Error fetching app analysis:', error);
@@ -75,21 +75,12 @@ export const fetchAppAnalysis = async (appId) => {
   }
 };
 
-export const implementAction = async ({ appId, actionId }) => {
+export const fetchKeywordAnalysis = async (keyword, industry = "B2B wholesale") => {
   try {
-    const response = await api.post(`/actions/${actionId}/implement`, {
-      app_id: appId
+    const response = await api.post(`/analyze/keywords`, {
+      base_keyword: keyword,
+      industry: industry
     });
-    return response.data;
-  } catch (error) {
-    console.error('Error implementing action:', error);
-    throw error;
-  }
-};
-
-export const fetchKeywordAnalysis = async (keyword) => {
-  try {
-    const response = await api.get(`/ai/keywords/${keyword}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching keyword analysis:', error);
@@ -97,21 +88,25 @@ export const fetchKeywordAnalysis = async (keyword) => {
   }
 };
 
-export const fetchCompetitorImpact = async (appId, competitorIds) => {
+export const fetchCompetitorAnalysis = async (appMetadata, competitorMetadata) => {
   try {
-    const response = await api.get(`/ai/competitors/impact/${appId}`, {
-      params: { competitor_ids: competitorIds }
+    const response = await api.post(`/analyze/competitors`, {
+      app_metadata: appMetadata,
+      competitor_metadata: competitorMetadata
     });
     return response.data;
   } catch (error) {
-    console.error('Error fetching competitor impact:', error);
+    console.error('Error fetching competitor analysis:', error);
     throw error;
   }
 };
 
-export const optimizeMetadata = async (appId, metadata) => {
+export const optimizeMetadata = async (metadata, keywords) => {
   try {
-    const response = await api.post(`/ai/metadata/optimize/${appId}`, metadata);
+    const response = await api.post(`/optimize/description`, {
+      current_description: metadata.description,
+      keywords: keywords
+    });
     return response.data;
   } catch (error) {
     console.error('Error optimizing metadata:', error);
@@ -119,14 +114,30 @@ export const optimizeMetadata = async (appId, metadata) => {
   }
 };
 
-export const fetchRankingHistory = async (appId, days = 30) => {
+export const fetchMarketTrends = async (category = "B2B wholesale") => {
   try {
-    const response = await api.get(`/rankings/history/${appId}`, {
-      params: { days }
+    const response = await api.post(`/analyze/trends`, {
+      category: category
     });
     return response.data;
   } catch (error) {
-    console.error('Error fetching ranking history:', error);
+    console.error('Error fetching market trends:', error);
     throw error;
   }
+};
+
+// Utility function to format app metadata
+export const formatAppMetadata = (appData) => {
+  return {
+    title: appData.title || "",
+    description: appData.description || "",
+    category: appData.category || "Business",
+    keywords: appData.keywords || [],
+    package_name: appData.package_name || "",
+    ratings: appData.ratings || {
+      average: 0,
+      count: 0
+    },
+    installs: appData.installs || "0+"
+  };
 };

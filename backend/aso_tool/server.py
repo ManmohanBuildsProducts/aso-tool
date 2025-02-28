@@ -13,8 +13,8 @@ from pydantic import BaseModel
 # Add backend directory to Python path
 sys.path.append(str(Path(__file__).parent))
 
-from .external_integrations.deepseek_analyzer import DeepseekAnalyzer
-from .external_integrations.playstore_scraper import PlayStoreScraper
+from aso_tool.external_integrations.deepseek_analyzer import DeepseekAnalyzer
+from aso_tool.external_integrations.playstore_scraper import PlayStoreScraper
 
 # Setup logging
 logging.basicConfig(
